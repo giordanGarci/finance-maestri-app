@@ -1,6 +1,6 @@
 # Autenticação com Google (Firebase Auth)
 
-Status: open
+Status: resolved
 Depende de: nada (mas precisa do `.env` preenchido — ver `docs/agents/firebase-setup.md`)
 
 ## Contexto
@@ -41,3 +41,25 @@ Falta o fluxo de login em si.
 - Fechar e reabrir o app mantém a sessão (sem precisar logar de novo).
 - Existe uma forma de deslogar (mesmo que só um botão numa tela de
   configurações simples).
+
+## Comments
+
+Implementado em `src/data/auth.ts` (`useAuthUser`, `useGoogleSignIn`,
+`signOutUser`) e `src/screens/auth/LoginScreen.tsx`. `App.tsx` decide entre
+`LoginScreen` e uma tela provisória com "Logado como ..." + botão "Sair"
+com base em `useAuthUser` — a tela provisória será substituída pela
+navegação principal no ticket 05.
+
+Instalados `expo-auth-session` e `expo-web-browser`; `app.json` recebeu o
+plugin `expo-web-browser` e um `scheme` (`maestriapp`) para o redirect do
+OAuth funcionar em builds standalone/dev client. `useGoogleSignIn` usa
+`EXPO_PUBLIC_GOOGLE_OAUTH_WEB_CLIENT_ID` via o proxy de autenticação do
+Expo — funciona em Expo Go/desenvolvimento; um build standalone vai
+precisar de `androidClientId`/`iosClientId` próprios (não implementado,
+fora do escopo deste ticket).
+
+Não testado contra um projeto Firebase real (sem credenciais disponíveis
+neste ambiente) — validado com `.env` de placeholders só para `tsc
+--noEmit` passar. Teste manual com credenciais reais (login, persistência
+de sessão, logout) fica pendente de quem tiver acesso ao console do
+Firebase configurado via `docs/agents/firebase-setup.md`.

@@ -1,6 +1,6 @@
 # Telas de Clientes
 
-Status: open
+Status: claimed
 Depende de: 01 (autenticação), 02 (repositório Firestore)
 
 ## Contexto

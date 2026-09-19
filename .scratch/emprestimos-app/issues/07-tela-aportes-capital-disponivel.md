@@ -1,6 +1,6 @@
 # Tela de Aportes e Capital disponível
 
-Status: open
+Status: claimed
 Depende de: 02 (repositório Firestore), 04 (cálculo de capital disponível), 05 (navegação)
 
 ## Contexto

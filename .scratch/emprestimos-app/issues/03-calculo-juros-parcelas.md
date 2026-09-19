@@ -1,6 +1,6 @@
 # Domínio: cálculo de Juros e geração de Parcelas
 
-Status: open
+Status: resolved
 Depende de: nada (lógica pura, sem Firestore)
 
 ## Contexto
@@ -45,3 +45,15 @@ Criar `src/domain/emprestimo.ts` com funções puras (sem I/O):
   (nenhuma perda/sobra de centavos).
 - `sugerirParcelas` com `quantidade = 1` retorna uma única parcela com o
   valor total.
+
+## Answer
+
+Criado `src/domain/emprestimo.ts` com `calcularValorTotal` e
+`sugerirParcelas`. A divisão usa `Math.floor` no valor base (truncando para
+baixo em centavos) e ajusta a última parcela como `valorTotal - soma das
+anteriores`, garantindo soma exata sem depender de arredondamento
+acumulado. Testado em `src/domain/emprestimo.test.ts` (quantidade = 1,
+divisão não exata 100/3, espaçamento de datas por `intervaloDias`, e um
+caso de 7 parcelas para checar ausência de perda de centavos). Adicionado
+`vitest` como test runner do projeto (não havia nenhum configurado ainda);
+rodar com `npm test`.

@@ -1,6 +1,6 @@
 # Preferência de aviso e notificações locais
 
-Status: claimed
+Status: resolved
 Depende de: 02 (repositório Firestore, para `preferenciasRepository`), 06 (precisa que Parcelas já existam para ter algo a notificar)
 
 ## Contexto
@@ -51,3 +51,45 @@ esse custo deliberadamente).
 - Marcar essa Parcela como paga remove a notificação agendada para ela.
 - Desativar a preferência (`ativado = false`) cancela todos os
   agendamentos.
+
+## Notas de resolução
+
+Tickets 02 e 06 ainda estavam `open` (sem `preferenciasRepository` nem
+telas de Empréstimos/navegação) no momento da implementação, então:
+
+- `src/notifications/permissoes.ts`: `solicitarPermissaoNotificacoes()` +
+  aviso documentado sobre emulador/Expo Go.
+- `src/notifications/agendamento.ts`: `sincronizarNotificacoes(parcelas, preferencia)`
+  exatamente como especificado.
+- `src/notifications/useSincronizarNotificacoes.ts`: hook que escuta todas
+  as Parcelas (via `collectionGroup(db, 'parcelas')`, já que é subcoleção)
+  e a Preferência de aviso via `onSnapshot`, e chama `sincronizarNotificacoes`
+  a cada mudança em qualquer uma delas. Isso cobre "abrir o app" e "qualquer
+  mudança em Parcelas" (criar Empréstimo, marcar paga) sem precisar de call
+  sites espalhados pelas telas dos tickets 01/06. Ticket 01 terminou durante
+  esta sessão e já criou `App.tsx`, então conectei
+  `useSincronizarNotificacoes(!!user)` lá (recebe um `ativo` para não tentar
+  ler `parcelas`/`config` antes do login, já que as regras do Firestore
+  exigem `request.auth != null`). Quando a navegação principal do ticket 05
+  substituir essa tela raiz provisória, o hook precisa continuar montado
+  acima da navegação (ou em algum componente que sempre renderiza logado).
+- `src/data/preferenciasRepository.ts`: implementei só a fatia
+  `obterPreferenciaAviso`/`salvarPreferenciaAviso` (nomes conforme o
+  ticket 02), usando `onSnapshot`/`setDoc` sobre `preferenciaAvisoDoc()`.
+  Os repositórios de clientes/empréstimos/aportes continuam em aberto para
+  o ticket 02.
+- `src/screens/PreferenciaAvisoScreen.tsx`: campo `diasAntes` + switch
+  `ativado`; ao salvar, persiste a preferência, pede permissão de
+  notificação se `ativado`, busca as Parcelas atuais (`getDocs` sobre o
+  mesmo `collectionGroup`) e chama `sincronizarNotificacoes` diretamente
+  (redundante com o hook quando ele estiver montado, mas mantém a tela
+  funcional sozinha antes disso). **Falta**: não está registrada em
+  nenhuma navegação ainda — ticket 05 (navegação) está `claimed` mas não
+  resolvido no momento desta implementação; quem terminá-lo precisa
+  adicionar uma rota para `PreferenciaAvisoScreen` (ex.: numa tela de
+  configurações).
+- `npx tsc --noEmit` passa sem erros. Não há suíte de testes no projeto
+  ainda; validação manual dos critérios de aceite depende de build de
+  desenvolvimento em dispositivo físico (ver `permissoes.ts`) e de haver
+  Empréstimos/Parcelas reais no Firestore (tickets 02/03/06), então não
+  pude validar os critérios de aceite end-to-end nesta sessão.

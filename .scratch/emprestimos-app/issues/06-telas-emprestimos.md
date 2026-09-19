@@ -1,6 +1,6 @@
 # Telas de Empréstimos
 
-Status: open
+Status: claimed
 Depende de: 02 (repositório Firestore), 03 (cálculo de juros/parcelas), 05 (navegação + fluxo a partir do detalhe do Cliente)
 
 ## Contexto

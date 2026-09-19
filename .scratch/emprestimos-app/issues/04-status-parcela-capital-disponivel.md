@@ -1,6 +1,6 @@
 # Domínio: status da Parcela e Capital disponível
 
-Status: open
+Status: resolved
 Depende de: nada (lógica pura, sem Firestore)
 
 ## Contexto
@@ -54,3 +54,14 @@ Criar `src/domain/capital.ts`:
   R$ 300 com todas as Parcelas pagas somando R$ 330 (Principal + Juros),
   resulta em Capital disponível de R$ 1030 (1000 − 300 + 330), não R$ 1000
   nem R$ 1330.
+
+## Answer
+
+Criado `src/domain/parcela.ts` (`statusParcela`) e `src/domain/capital.ts`
+(`calcularCapitalDisponivel`), ambos importando os tipos existentes de
+`src/domain/types.ts` sem alterá-los. `statusParcela` retorna `'em-dia'`
+sempre que `paga === true`, antes mesmo de olhar a data. Testado em
+`src/domain/parcela.test.ts` e `src/domain/capital.test.ts`, incluindo o
+cenário exato do critério de aceite (1000 − 300 + 330 = 1030) e um caso
+extra confirmando que o Principal é subtraído mesmo sem nenhuma Parcela
+paga.
