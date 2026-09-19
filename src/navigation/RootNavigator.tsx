@@ -6,6 +6,7 @@ import { ClienteDetalheScreen } from '../screens/clientes/ClienteDetalheScreen';
 import { EmprestimoFormScreen } from '../screens/emprestimos/EmprestimoFormScreen';
 import { EmprestimoDetalheScreen } from '../screens/emprestimos/EmprestimoDetalheScreen';
 import { AportesScreen } from '../screens/aportes/AportesScreen';
+import PreferenciaAvisoScreen from '../screens/PreferenciaAvisoScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -22,6 +23,11 @@ export function RootNavigator() {
         options={{ title: 'Detalhe do empréstimo' }}
       />
       <Stack.Screen name="Aportes" component={AportesScreen} options={{ title: 'Aportes' }} />
+      <Stack.Screen
+        name="PreferenciaAviso"
+        component={PreferenciaAvisoScreen}
+        options={{ title: 'Preferência de aviso' }}
+      />
     </Stack.Navigator>
   );
 }

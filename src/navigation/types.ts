@@ -7,4 +7,5 @@ export type RootStackParamList = {
   EmprestimoForm: { clienteId: string };
   EmprestimoDetalhe: { emprestimo: Emprestimo };
   Aportes: undefined;
+  PreferenciaAviso: undefined;
 };

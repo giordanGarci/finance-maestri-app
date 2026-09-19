@@ -1,6 +1,6 @@
 # Telas de Empréstimos
 
-Status: claimed
+Status: resolved
 Depende de: 02 (repositório Firestore), 03 (cálculo de juros/parcelas), 05 (navegação + fluxo a partir do detalhe do Cliente)
 
 ## Contexto
@@ -40,3 +40,28 @@ só o número de Parcelas (1 = pagamento único).
   e voltar (via `onSnapshot`, ver ticket 02).
 - Um Empréstimo com 1 Parcela é exibido em algum lugar da UI como
   "pagamento único" (rótulo de exibição, não campo novo no banco).
+
+## Notas de resolução
+
+- `src/screens/emprestimos/EmprestimoFormScreen.tsx`: Principal, Juros (%),
+  quantidade de Parcelas, data da primeira Parcela (texto `dd/mm/aaaa`) e
+  intervalo em dias. Usa `calcularValorTotal`/`sugerirParcelas` do Contador
+  para a prévia; um switch "Editar parcelas manualmente" troca os valores
+  calculados por `TextInput`s editáveis por Parcela (mantendo número e data),
+  com um aviso (não bloqueante) se a soma divergir do valor total após edição
+  manual — a divergência é permitida de propósito (`CONTEXT.md`: a sugestão
+  pode ser desmarcada e editada).
+- `src/screens/emprestimos/EmprestimoDetalheScreen.tsx`: Principal, Juros,
+  total e lista de Parcelas via `listarParcelas`; status via `statusParcela`
+  (Contador), rótulo "Pago" sobrepõe o status quando `paga`. Rótulo
+  "Pagamento único" vs. "Parcelado em Nx" aparece aqui, a partir da
+  quantidade de Parcelas carregadas (não é um campo novo no domínio).
+  Botão "Marcar como paga" por Parcela não paga, chamando
+  `marcarParcelaPaga` (atualiza via `onSnapshot`, sem precisar recarregar a
+  tela).
+- `criarEmprestimo` do repositório (ticket 02, já commitado) recebe um único
+  objeto `{ clienteId, principal, taxaJuros, valorTotal, parcelas }`; ajustei
+  a tela a essa assinatura (documentada em `DadosNovoEmprestimo` no arquivo).
+- `npx tsc --noEmit` e `npm test` passam sem erros. Validação end-to-end
+  (criar Empréstimo real, ver documento no Firestore) depende de rodar o app
+  com `.env` preenchido — não executada nesta sessão.
