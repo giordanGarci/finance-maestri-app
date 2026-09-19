@@ -1,0 +1,3 @@
+# Stack: React Native (Expo) + Firebase/Firestore
+
+Como o app é de uso pessoal (um único usuário, baixo volume de dados) e não deve gerar custo de hospedagem, escolhemos React Native com Expo para build gratuito em Android (com caminho aberto pra iOS) e Firebase/Firestore para persistência na nuvem, aproveitando o tier gratuito generoso e a integração direta com Expo (incluindo Firebase Auth para login). Alternativas consideradas: Flutter (ecossistema Dart, sem vantagem clara aqui) e Supabase (Postgres, preferível só se houvesse necessidade de SQL relacional, que não existe nesse domínio simples).
