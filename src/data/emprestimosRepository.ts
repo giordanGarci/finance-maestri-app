@@ -1,6 +1,7 @@
 import {
   collection,
   doc,
+  getDocs,
   onSnapshot,
   query,
   Timestamp,
@@ -22,6 +23,15 @@ export interface DadosNovoEmprestimo {
   valorTotal: number;
   /** Parcelas já calculadas (ver src/domain) — este módulo só persiste. */
   parcelas: Array<{ numero: number; valor: number; dataVencimento: Date }>;
+}
+
+export function observarEmprestimo(
+  emprestimoId: string,
+  onChange: (emprestimo: Emprestimo | null) => void
+): Unsubscribe {
+  return onSnapshot(doc(emprestimosRef(), emprestimoId), (snap) => {
+    onChange(snap.exists() ? snap.data() : null);
+  });
 }
 
 export function listarEmprestimosPorCliente(
@@ -68,6 +78,58 @@ export async function criarEmprestimo(dados: DadosNovoEmprestimo): Promise<strin
 
   await batch.commit();
   return emprestimoDocRef.id;
+}
+
+/**
+ * Atualiza um Empréstimo existente. Concilia as Parcelas por número: uma Parcela cujo
+ * número continua presente é atualizada no lugar (preservando "paga"/dataPagamento);
+ * números que somem são removidos e números novos são criados como não pagas.
+ */
+export async function atualizarEmprestimo(emprestimoId: string, dados: DadosNovoEmprestimo): Promise<void> {
+  const uid = uidAtual();
+  const batch = writeBatch(db);
+
+  const emprestimoDocRef = doc(db, 'emprestimos', emprestimoId);
+  batch.update(emprestimoDocRef, {
+    clienteId: dados.clienteId,
+    principal: dados.principal,
+    taxaJuros: dados.taxaJuros,
+    valorTotal: dados.valorTotal,
+  });
+
+  const parcelasExistentesSnap = await getDocs(collection(db, 'emprestimos', emprestimoId, 'parcelas'));
+  const parcelasExistentesPorNumero = new Map(
+    parcelasExistentesSnap.docs.map((d) => [d.data().numero as number, d])
+  );
+  const numerosNovos = new Set(dados.parcelas.map((p) => p.numero));
+
+  for (const parcela of dados.parcelas) {
+    const existente = parcelasExistentesPorNumero.get(parcela.numero);
+    if (existente) {
+      batch.update(existente.ref, {
+        valor: parcela.valor,
+        dataVencimento: Timestamp.fromDate(parcela.dataVencimento),
+      });
+    } else {
+      const parcelaDocRef = doc(collection(db, 'emprestimos', emprestimoId, 'parcelas'));
+      batch.set(parcelaDocRef, {
+        numero: parcela.numero,
+        valor: parcela.valor,
+        dataVencimento: Timestamp.fromDate(parcela.dataVencimento),
+        paga: false,
+        dataPagamento: null,
+        donoId: uid,
+      });
+    }
+  }
+
+  for (const [numero, parcelaDoc] of parcelasExistentesPorNumero) {
+    if (!numerosNovos.has(numero)) {
+      batch.delete(parcelaDoc.ref);
+    }
+  }
+
+  await batch.commit();
 }
 
 export function listarParcelas(

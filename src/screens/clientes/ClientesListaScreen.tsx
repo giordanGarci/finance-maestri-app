@@ -7,8 +7,19 @@ import { listarClientes } from '../../data/clientesRepository';
 import { listarEmprestimosPorCliente } from '../../data/emprestimosRepository';
 import { signOutUser } from '../../data/auth';
 import { CapitalDisponivelResumo } from '../components/CapitalDisponivelResumo';
+import { AppButton } from '../../ui/AppButton';
+import { Card } from '../../ui/Card';
+import { ScreenContainer } from '../../ui/ScreenContainer';
+import { colors, radius, spacing, typography } from '../../ui/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientesLista'>;
+
+function iniciais(nome: string): string {
+  const partes = nome.trim().split(/\s+/);
+  const primeira = partes[0]?.[0] ?? '';
+  const ultima = partes.length > 1 ? partes[partes.length - 1][0] : '';
+  return (primeira + ultima).toUpperCase();
+}
 
 function ClienteLinha({ cliente, onPress }: { cliente: Cliente; onPress: () => void }) {
   const [emprestimos, setEmprestimos] = useState<Emprestimo[]>([]);
@@ -16,11 +27,19 @@ function ClienteLinha({ cliente, onPress }: { cliente: Cliente; onPress: () => v
   useEffect(() => listarEmprestimosPorCliente(cliente.id, setEmprestimos), [cliente.id]);
 
   return (
-    <Pressable style={styles.linha} onPress={onPress}>
-      <Text style={styles.nome}>{cliente.nome}</Text>
-      <Text style={styles.indicador}>
-        {emprestimos.length} {emprestimos.length === 1 ? 'empréstimo' : 'empréstimos'}
-      </Text>
+    <Pressable onPress={onPress} style={({ pressed }) => [pressed && styles.linhaPressionada]}>
+      <Card style={styles.linha}>
+        <View style={styles.avatar}>
+          <Text style={styles.avatarTexto}>{iniciais(cliente.nome)}</Text>
+        </View>
+        <View style={styles.linhaInfo}>
+          <Text style={styles.nome}>{cliente.nome}</Text>
+          <Text style={styles.indicador}>
+            {emprestimos.length} {emprestimos.length === 1 ? 'empréstimo' : 'empréstimos'}
+          </Text>
+        </View>
+        <Text style={styles.seta}>›</Text>
+      </Card>
     </Pressable>
   );
 }
@@ -46,7 +65,7 @@ export function ClientesListaScreen({ navigation }: Props) {
   }, [navigation]);
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <FlatList
         data={clientes}
         keyExtractor={(cliente) => cliente.id}
@@ -54,48 +73,52 @@ export function ClientesListaScreen({ navigation }: Props) {
           <>
             <CapitalDisponivelResumo />
             <Pressable style={styles.linkAportes} onPress={() => navigation.navigate('Aportes')}>
-              <Text style={styles.linkAportesTexto}>Ver aportes</Text>
+              <Text style={styles.linkAportesTexto}>Ver aportes ›</Text>
             </Pressable>
+            <Text style={styles.secaoTitulo}>Clientes</Text>
           </>
         }
         renderItem={({ item }) => (
           <ClienteLinha cliente={item} onPress={() => navigation.navigate('ClienteDetalhe', { cliente: item })} />
         )}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={<Text style={styles.vazio}>Nenhum cliente cadastrado ainda.</Text>}
         contentContainerStyle={styles.lista}
       />
-      <Pressable style={styles.novoCliente} onPress={() => navigation.navigate('ClienteForm')}>
-        <Text style={styles.novoClienteTexto}>+ Novo cliente</Text>
-      </Pressable>
-    </View>
+      <View style={styles.rodape}>
+        <AppButton title="+ Novo cliente" onPress={() => navigation.navigate('ClienteForm')} />
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  lista: { paddingBottom: 96 },
-  acoesHeader: { flexDirection: 'row', gap: 16 },
-  acaoHeader: { color: '#1565C0', fontWeight: '600' },
-  linkAportes: { marginHorizontal: 16, marginTop: 12, marginBottom: 4 },
-  linkAportesTexto: { color: '#1565C0', fontWeight: '600' },
-  linha: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
-  },
-  nome: { fontSize: 16, fontWeight: '600' },
-  indicador: { fontSize: 13, color: '#555', marginTop: 2 },
-  vazio: { textAlign: 'center', marginTop: 32, color: '#666' },
-  novoCliente: {
-    position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 24,
-    backgroundColor: '#1565C0',
-    borderRadius: 8,
-    paddingVertical: 14,
+  lista: { padding: spacing.lg, paddingBottom: 100 },
+  acoesHeader: { flexDirection: 'row', gap: spacing.lg },
+  acaoHeader: { color: colors.primary, fontWeight: '600' },
+  linkAportes: { marginTop: spacing.md, marginBottom: spacing.md },
+  linkAportesTexto: { color: colors.primary, fontWeight: '700' },
+  secaoTitulo: { ...typography.subtitle, marginBottom: spacing.sm },
+  linhaPressionada: { opacity: 0.8 },
+  linha: { flexDirection: 'row', alignItems: 'center' },
+  linhaInfo: { flex: 1, marginLeft: spacing.md },
+  avatar: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.pill,
+    backgroundColor: colors.primarySoft,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  novoClienteTexto: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  avatarTexto: { color: colors.primaryDark, fontWeight: '800', fontSize: 15 },
+  nome: { fontSize: 16, fontWeight: '700', color: colors.text },
+  indicador: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
+  seta: { fontSize: 22, color: colors.textFaint, fontWeight: '300' },
+  vazio: { textAlign: 'center', marginTop: spacing.xl, color: colors.textMuted },
+  rodape: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
+  },
 });

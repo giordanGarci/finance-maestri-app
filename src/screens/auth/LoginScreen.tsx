@@ -1,6 +1,10 @@
 import { useState } from 'react';
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { criarConta, entrarComEmailSenha } from '../../data/auth';
+import { AppButton } from '../../ui/AppButton';
+import { Card } from '../../ui/Card';
+import { TextField } from '../../ui/TextField';
+import { colors, spacing, typography } from '../../ui/theme';
 
 export function LoginScreen() {
   const [modo, setModo] = useState<'entrar' | 'criar-conta'>('entrar');
@@ -27,32 +31,43 @@ export function LoginScreen() {
 
   return (
     <View style={styles.container}>
+      <Text style={styles.marca}>💰</Text>
       <Text style={styles.titulo}>Empréstimos</Text>
-      <TextInput
-        style={styles.campo}
-        placeholder="E-mail"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-      <TextInput
-        style={styles.campo}
-        placeholder="Senha"
-        secureTextEntry
-        value={senha}
-        onChangeText={setSenha}
-      />
-      {erro ? <Text style={styles.erro}>{erro}</Text> : null}
-      <Button
-        title={modo === 'criar-conta' ? 'Criar conta' : 'Entrar'}
-        onPress={confirmar}
-        disabled={enviando || !email || !senha}
-      />
-      <Button
-        title={modo === 'criar-conta' ? 'Já tenho conta, entrar' : 'Criar minha conta'}
-        onPress={() => setModo(modo === 'criar-conta' ? 'entrar' : 'criar-conta')}
-      />
+      <Text style={styles.subtitulo}>Organize clientes, empréstimos e parcelas em um só lugar</Text>
+
+      <Card>
+        <TextField
+          label="E-mail"
+          placeholder="voce@email.com"
+          autoCapitalize="none"
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+        />
+        <TextField
+          label="Senha"
+          placeholder="••••••••"
+          secureTextEntry
+          value={senha}
+          onChangeText={setSenha}
+        />
+
+        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+
+        <AppButton
+          title={modo === 'criar-conta' ? 'Criar conta' : 'Entrar'}
+          onPress={confirmar}
+          disabled={enviando || !email || !senha}
+          loading={enviando}
+          style={styles.botaoPrincipal}
+        />
+        <AppButton
+          title={modo === 'criar-conta' ? 'Já tenho conta, entrar' : 'Criar minha conta'}
+          onPress={() => setModo(modo === 'criar-conta' ? 'entrar' : 'criar-conta')}
+          variant="secondary"
+          style={styles.botaoSecundario}
+        />
+      </Card>
     </View>
   );
 }
@@ -62,22 +77,18 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'stretch',
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    gap: 12,
+    paddingHorizontal: spacing.lg,
+    backgroundColor: colors.background,
   },
-  titulo: {
-    fontSize: 24,
-    fontWeight: '600',
+  marca: { fontSize: 44, textAlign: 'center', marginBottom: spacing.sm },
+  titulo: { ...typography.title, fontSize: 26, textAlign: 'center' },
+  subtitulo: {
+    ...typography.caption,
     textAlign: 'center',
-    marginBottom: 12,
+    marginTop: spacing.xs,
+    marginBottom: spacing.xl,
   },
-  campo: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-  },
-  erro: {
-    color: '#b00020',
-  },
+  erro: { color: colors.danger, marginTop: spacing.md, fontSize: 13, fontWeight: '600' },
+  botaoPrincipal: { marginTop: spacing.lg },
+  botaoSecundario: { marginTop: spacing.sm },
 });

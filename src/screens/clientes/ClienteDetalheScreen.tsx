@@ -4,6 +4,10 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import type { Emprestimo } from '../../domain/types';
 import { listarEmprestimosPorCliente } from '../../data/emprestimosRepository';
+import { AppButton } from '../../ui/AppButton';
+import { Card } from '../../ui/Card';
+import { ScreenContainer } from '../../ui/ScreenContainer';
+import { colors, spacing, typography } from '../../ui/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClienteDetalhe'>;
 
@@ -16,13 +20,13 @@ export function ClienteDetalheScreen({ route, navigation }: Props) {
   useEffect(() => listarEmprestimosPorCliente(cliente.id, setEmprestimos), [cliente.id]);
 
   return (
-    <View style={styles.container}>
+    <ScreenContainer>
       <FlatList
         data={emprestimos}
         keyExtractor={(emprestimo) => emprestimo.id}
         ListHeaderComponent={
           <>
-            <View style={styles.dados}>
+            <Card style={styles.dados}>
               <Text style={styles.nome}>{cliente.nome}</Text>
               {cliente.telefone ? <Text style={styles.detalheTexto}>{cliente.telefone}</Text> : null}
               {cliente.observacoes ? <Text style={styles.detalheTexto}>{cliente.observacoes}</Text> : null}
@@ -32,61 +36,54 @@ export function ClienteDetalheScreen({ route, navigation }: Props) {
               >
                 <Text style={styles.botaoSecundarioTexto}>Editar cliente</Text>
               </Pressable>
-            </View>
+            </Card>
             <Text style={styles.secaoTitulo}>Empréstimos</Text>
           </>
         }
         renderItem={({ item }) => (
-          <Pressable
-            style={styles.linha}
-            onPress={() => navigation.navigate('EmprestimoDetalhe', { emprestimo: item })}
-          >
-            <Text style={styles.linhaTitulo}>{formatoMoeda.format(item.valorTotal)}</Text>
-            <Text style={styles.linhaSubtitulo}>
-              Principal: {formatoMoeda.format(item.principal)} · Juros: {(item.taxaJuros * 100).toFixed(0)}%
-            </Text>
+          <Pressable onPress={() => navigation.navigate('EmprestimoDetalhe', { emprestimo: item })}>
+            <Card style={styles.linha}>
+              <View>
+                <Text style={styles.linhaTitulo}>{formatoMoeda.format(item.valorTotal)}</Text>
+                <Text style={styles.linhaSubtitulo}>
+                  Principal: {formatoMoeda.format(item.principal)} · Juros: {(item.taxaJuros * 100).toFixed(0)}%
+                </Text>
+              </View>
+              <Text style={styles.seta}>›</Text>
+            </Card>
           </Pressable>
         )}
+        ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={<Text style={styles.vazio}>Nenhum empréstimo ainda.</Text>}
         contentContainerStyle={styles.lista}
       />
-      <Pressable
-        style={styles.novoEmprestimo}
-        onPress={() => navigation.navigate('EmprestimoForm', { clienteId: cliente.id })}
-      >
-        <Text style={styles.novoEmprestimoTexto}>+ Novo empréstimo</Text>
-      </Pressable>
-    </View>
+      <View style={styles.rodape}>
+        <AppButton
+          title="+ Novo empréstimo"
+          onPress={() => navigation.navigate('EmprestimoForm', { clienteId: cliente.id })}
+        />
+      </View>
+    </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  lista: { paddingBottom: 96 },
-  dados: { padding: 16 },
-  nome: { fontSize: 20, fontWeight: '700' },
-  detalheTexto: { fontSize: 14, color: '#444', marginTop: 4 },
-  botaoSecundario: { marginTop: 12, alignSelf: 'flex-start' },
-  botaoSecundarioTexto: { color: '#1565C0', fontWeight: '600' },
-  secaoTitulo: { fontSize: 15, fontWeight: '700', marginHorizontal: 16, marginTop: 8, marginBottom: 4 },
-  linha: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#ccc',
-  },
-  linhaTitulo: { fontSize: 16, fontWeight: '600' },
-  linhaSubtitulo: { fontSize: 13, color: '#555', marginTop: 2 },
-  vazio: { textAlign: 'center', marginTop: 16, color: '#666' },
-  novoEmprestimo: {
+  lista: { padding: spacing.lg, paddingBottom: 100 },
+  dados: { marginBottom: spacing.lg },
+  nome: { fontSize: 22, fontWeight: '800', color: colors.text },
+  detalheTexto: { fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
+  botaoSecundario: { marginTop: spacing.md, alignSelf: 'flex-start' },
+  botaoSecundarioTexto: { color: colors.primary, fontWeight: '700' },
+  secaoTitulo: { ...typography.subtitle, marginBottom: spacing.sm },
+  linha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  linhaTitulo: { fontSize: 17, fontWeight: '700', color: colors.text },
+  linhaSubtitulo: { fontSize: 13, color: colors.textMuted, marginTop: 3 },
+  seta: { fontSize: 22, color: colors.textFaint, fontWeight: '300' },
+  vazio: { textAlign: 'center', marginTop: spacing.lg, color: colors.textMuted },
+  rodape: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 24,
-    backgroundColor: '#1565C0',
-    borderRadius: 8,
-    paddingVertical: 14,
-    alignItems: 'center',
+    left: spacing.lg,
+    right: spacing.lg,
+    bottom: spacing.lg,
   },
-  novoEmprestimoTexto: { color: '#fff', fontWeight: '700', fontSize: 16 },
 });
