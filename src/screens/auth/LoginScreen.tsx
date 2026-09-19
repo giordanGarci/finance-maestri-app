@@ -1,71 +1,71 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { criarConta, entrarComEmailSenha } from '../../data/auth';
+import { createAccount, signInWithEmailPassword } from '../../data/auth';
 import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
 import { TextField } from '../../ui/TextField';
 import { colors, spacing, typography } from '../../ui/theme';
 
 export function LoginScreen() {
-  const [modo, setModo] = useState<'entrar' | 'criar-conta'>('entrar');
+  const [mode, setMode] = useState<'sign-in' | 'create-account'>('sign-in');
   const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [erro, setErro] = useState<string | null>(null);
-  const [enviando, setEnviando] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
-  async function confirmar() {
-    setErro(null);
-    setEnviando(true);
+  async function confirm() {
+    setError(null);
+    setSubmitting(true);
     try {
-      if (modo === 'criar-conta') {
-        await criarConta(email, senha);
+      if (mode === 'create-account') {
+        await createAccount(email, password);
       } else {
-        await entrarComEmailSenha(email, senha);
+        await signInWithEmailPassword(email, password);
       }
     } catch (e) {
-      setErro(e instanceof Error ? e.message : 'Falha ao autenticar.');
+      setError(e instanceof Error ? e.message : 'Failed to authenticate.');
     } finally {
-      setEnviando(false);
+      setSubmitting(false);
     }
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.marca}>💰</Text>
-      <Text style={styles.titulo}>Empréstimos</Text>
-      <Text style={styles.subtitulo}>Organize clientes, empréstimos e parcelas em um só lugar</Text>
+      <Text style={styles.brand}>💰</Text>
+      <Text style={styles.title}>Loans</Text>
+      <Text style={styles.subtitle}>Keep clients, loans, and installments organized in one place</Text>
 
       <Card>
         <TextField
-          label="E-mail"
-          placeholder="voce@email.com"
+          label="Email"
+          placeholder="you@email.com"
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
         <TextField
-          label="Senha"
+          label="Password"
           placeholder="••••••••"
           secureTextEntry
-          value={senha}
-          onChangeText={setSenha}
+          value={password}
+          onChangeText={setPassword}
         />
 
-        {erro ? <Text style={styles.erro}>{erro}</Text> : null}
+        {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <AppButton
-          title={modo === 'criar-conta' ? 'Criar conta' : 'Entrar'}
-          onPress={confirmar}
-          disabled={enviando || !email || !senha}
-          loading={enviando}
-          style={styles.botaoPrincipal}
+          title={mode === 'create-account' ? 'Create account' : 'Sign in'}
+          onPress={confirm}
+          disabled={submitting || !email || !password}
+          loading={submitting}
+          style={styles.primaryButton}
         />
         <AppButton
-          title={modo === 'criar-conta' ? 'Já tenho conta, entrar' : 'Criar minha conta'}
-          onPress={() => setModo(modo === 'criar-conta' ? 'entrar' : 'criar-conta')}
+          title={mode === 'create-account' ? 'I already have an account, sign in' : 'Create my account'}
+          onPress={() => setMode(mode === 'create-account' ? 'sign-in' : 'create-account')}
           variant="secondary"
-          style={styles.botaoSecundario}
+          style={styles.secondaryButton}
         />
       </Card>
     </View>
@@ -80,15 +80,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     backgroundColor: colors.background,
   },
-  marca: { fontSize: 44, textAlign: 'center', marginBottom: spacing.sm },
-  titulo: { ...typography.title, fontSize: 26, textAlign: 'center' },
-  subtitulo: {
+  brand: { fontSize: 44, textAlign: 'center', marginBottom: spacing.sm },
+  title: { ...typography.title, fontSize: 26, textAlign: 'center' },
+  subtitle: {
     ...typography.caption,
     textAlign: 'center',
     marginTop: spacing.xs,
     marginBottom: spacing.xl,
   },
-  erro: { color: colors.danger, marginTop: spacing.md, fontSize: 13, fontWeight: '600' },
-  botaoPrincipal: { marginTop: spacing.lg },
-  botaoSecundario: { marginTop: spacing.sm },
+  error: { color: colors.danger, marginTop: spacing.md, fontSize: 13, fontWeight: '600' },
+  primaryButton: { marginTop: spacing.lg },
+  secondaryButton: { marginTop: spacing.sm },
 });

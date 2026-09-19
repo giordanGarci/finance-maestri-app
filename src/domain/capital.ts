@@ -1,26 +1,26 @@
 /**
- * Capital disponível. Ver CONTEXT.md (termo "Capital disponível"): derivado,
- * nunca editado manualmente pelo usuário.
+ * Available capital. See CONTEXT.md ("Available capital"): derived,
+ * never edited manually by the user.
  */
-import type { Aporte, Emprestimo, Parcela } from './types';
+import type { Contribution, Loan, Installment } from './types';
 
-export function calcularCapitalDisponivel(
-  aportes: Aporte[],
-  emprestimos: Emprestimo[],
-  parcelas: Parcela[]
+export function calculateAvailableCapital(
+  contributions: Contribution[],
+  loans: Loan[],
+  installments: Installment[]
 ): number {
-  const totalAportes = aportes.reduce((soma, aporte) => soma + aporte.valor, 0);
+  const totalContributions = contributions.reduce((sum, contribution) => sum + contribution.amount, 0);
 
-  // O Principal de todo Empréstimo existente é subtraído, mesmo após a quitação
-  // (não há conceito de cancelamento no MVP): ele representa a saída de caixa
-  // que já aconteceu na criação. As Parcelas pagas são a entrada de caixa que
-  // devolve esse Principal, com Juros. Parar de subtrair o Principal quando o
-  // Empréstimo é quitado contaria o Juros recebido em dobro.
-  const totalPrincipais = emprestimos.reduce((soma, emprestimo) => soma + emprestimo.principal, 0);
+  // The Principal of every existing Loan is subtracted, even after it's fully paid off
+  // (there is no cancellation concept in the MVP): it represents the cash outflow that
+  // already happened at creation. Paid Installments are the cash inflow that returns that
+  // Principal, plus Interest. If the Principal stopped being subtracted once the Loan is
+  // paid off, the Interest received would be counted twice.
+  const totalPrincipals = loans.reduce((sum, loan) => sum + loan.principal, 0);
 
-  const totalParcelasPagas = parcelas
-    .filter((parcela) => parcela.paga)
-    .reduce((soma, parcela) => soma + parcela.valor, 0);
+  const totalPaidInstallments = installments
+    .filter((installment) => installment.paid)
+    .reduce((sum, installment) => sum + installment.amount, 0);
 
-  return totalAportes - totalPrincipais + totalParcelasPagas;
+  return totalContributions - totalPrincipals + totalPaidInstallments;
 }

@@ -1,11 +1,11 @@
-import type { Cliente, Emprestimo } from '../domain/types';
+import type { Client, Loan } from '../domain/types';
 
 export type RootStackParamList = {
-  ClientesLista: undefined;
-  ClienteForm: { cliente?: Cliente } | undefined;
-  ClienteDetalhe: { cliente: Cliente };
-  EmprestimoForm: { clienteId: string; emprestimo?: Emprestimo };
-  EmprestimoDetalhe: { emprestimo: Emprestimo };
-  Aportes: undefined;
-  PreferenciaAviso: undefined;
+  ClientsList: undefined;
+  ClientForm: { client?: Client } | undefined;
+  ClientDetail: { client: Client };
+  LoanForm: { clientId: string; loan?: Loan };
+  LoanDetail: { loan: Loan };
+  Contributions: undefined;
+  NotificationPreference: undefined;
 };

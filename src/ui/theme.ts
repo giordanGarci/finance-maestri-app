@@ -1,4 +1,4 @@
-/** Paleta e tokens visuais compartilhados por toda a UI. */
+/** Color palette and visual tokens shared across the whole UI. */
 
 export const colors = {
   background: '#F4F6FB',

@@ -1,16 +1,16 @@
 /**
- * Modelagem das coleções do Firestore, espelhando os termos de CONTEXT.md.
+ * Firestore collection modeling, mirroring the terms in CONTEXT.md.
  *
- * clientes/{clienteId}
- * emprestimos/{emprestimoId}
- *   emprestimos/{emprestimoId}/parcelas/{parcelaId}   <- subcoleção
- * aportes/{aporteId}
- * config/preferenciaAviso                              <- documento único
+ * clients/{clientId}
+ * loans/{loanId}
+ *   loans/{loanId}/installments/{installmentId}   <- subcollection
+ * contributions/{contributionId}
+ * config/notificationPreference                    <- single document
  *
- * Cada documento de clientes/emprestimos/parcelas/aportes tem um campo `donoId`
- * (uid do Firebase Auth) usado pelas regras de segurança, já que o app é de
- * usuário único mas os dados continuam associados a uma conta. Ver
- * docs/agents/firebase-setup.md para as regras sugeridas.
+ * Every document in clients/loans/installments/contributions has an `ownerId`
+ * field (Firebase Auth uid) used by the security rules, since the app is
+ * single-user but the data is still tied to an account. See
+ * docs/agents/firebase-setup.md for the suggested rules.
  */
 import {
   collection,
@@ -22,7 +22,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
-import type { Aporte, Cliente, Emprestimo, Parcela, PreferenciaAviso } from '../domain/types';
+import type { Contribution, Client, Loan, Installment, NotificationPreference } from '../domain/types';
 
 function converter<TDomain extends { id: string }>(
   toFirestoreFields: (value: Omit<TDomain, 'id'>) => DocumentData,
@@ -39,98 +39,98 @@ function converter<TDomain extends { id: string }>(
   };
 }
 
-export const clienteConverter = converter<Cliente>(
+export const clientConverter = converter<Client>(
   (c) => ({
-    nome: c.nome,
-    telefone: c.telefone ?? null,
-    observacoes: c.observacoes ?? null,
-    criadoEm: Timestamp.fromDate(c.criadoEm),
+    name: c.name,
+    phone: c.phone ?? null,
+    notes: c.notes ?? null,
+    createdAt: Timestamp.fromDate(c.createdAt),
   }),
   (data, id) => ({
     id,
-    nome: data.nome,
-    telefone: data.telefone ?? undefined,
-    observacoes: data.observacoes ?? undefined,
-    criadoEm: (data.criadoEm as Timestamp).toDate(),
+    name: data.name,
+    phone: data.phone ?? undefined,
+    notes: data.notes ?? undefined,
+    createdAt: (data.createdAt as Timestamp).toDate(),
   })
 );
 
-export const emprestimoConverter = converter<Emprestimo>(
+export const loanConverter = converter<Loan>(
   (e) => ({
-    clienteId: e.clienteId,
+    clientId: e.clientId,
     principal: e.principal,
-    taxaJuros: e.taxaJuros,
-    valorTotal: e.valorTotal,
-    criadoEm: Timestamp.fromDate(e.criadoEm),
+    interestRate: e.interestRate,
+    totalAmount: e.totalAmount,
+    createdAt: Timestamp.fromDate(e.createdAt),
   }),
   (data, id) => ({
     id,
-    clienteId: data.clienteId,
+    clientId: data.clientId,
     principal: data.principal,
-    taxaJuros: data.taxaJuros,
-    valorTotal: data.valorTotal,
-    criadoEm: (data.criadoEm as Timestamp).toDate(),
+    interestRate: data.interestRate,
+    totalAmount: data.totalAmount,
+    createdAt: (data.createdAt as Timestamp).toDate(),
   })
 );
 
-export const parcelaConverter = converter<Parcela>(
+export const installmentConverter = converter<Installment>(
   (p) => ({
-    emprestimoId: p.emprestimoId,
-    numero: p.numero,
-    valor: p.valor,
-    dataVencimento: Timestamp.fromDate(p.dataVencimento),
-    paga: p.paga,
-    dataPagamento: p.dataPagamento ? Timestamp.fromDate(p.dataPagamento) : null,
+    loanId: p.loanId,
+    number: p.number,
+    amount: p.amount,
+    dueDate: Timestamp.fromDate(p.dueDate),
+    paid: p.paid,
+    paidAt: p.paidAt ? Timestamp.fromDate(p.paidAt) : null,
   }),
   (data, id) => ({
     id,
-    emprestimoId: data.emprestimoId,
-    numero: data.numero,
-    valor: data.valor,
-    dataVencimento: (data.dataVencimento as Timestamp).toDate(),
-    paga: data.paga,
-    dataPagamento: data.dataPagamento ? (data.dataPagamento as Timestamp).toDate() : undefined,
+    loanId: data.loanId,
+    number: data.number,
+    amount: data.amount,
+    dueDate: (data.dueDate as Timestamp).toDate(),
+    paid: data.paid,
+    paidAt: data.paidAt ? (data.paidAt as Timestamp).toDate() : undefined,
   })
 );
 
-export const aporteConverter = converter<Aporte>(
+export const contributionConverter = converter<Contribution>(
   (a) => ({
-    valor: a.valor,
-    data: Timestamp.fromDate(a.data),
-    observacao: a.observacao ?? null,
+    amount: a.amount,
+    date: Timestamp.fromDate(a.date),
+    note: a.note ?? null,
   }),
   (data, id) => ({
     id,
-    valor: data.valor,
-    data: (data.data as Timestamp).toDate(),
-    observacao: data.observacao ?? undefined,
+    amount: data.amount,
+    date: (data.date as Timestamp).toDate(),
+    note: data.note ?? undefined,
   })
 );
 
-export function clientesRef(): CollectionReference<Cliente> {
-  return collection(db, 'clientes').withConverter(clienteConverter);
+export function clientsRef(): CollectionReference<Client> {
+  return collection(db, 'clients').withConverter(clientConverter);
 }
 
-export function emprestimosRef(): CollectionReference<Emprestimo> {
-  return collection(db, 'emprestimos').withConverter(emprestimoConverter);
+export function loansRef(): CollectionReference<Loan> {
+  return collection(db, 'loans').withConverter(loanConverter);
 }
 
-export function parcelasRef(emprestimoId: string): CollectionReference<Parcela> {
-  return collection(db, 'emprestimos', emprestimoId, 'parcelas').withConverter(parcelaConverter);
+export function installmentsRef(loanId: string): CollectionReference<Installment> {
+  return collection(db, 'loans', loanId, 'installments').withConverter(installmentConverter);
 }
 
-export function aportesRef(): CollectionReference<Aporte> {
-  return collection(db, 'aportes').withConverter(aporteConverter);
+export function contributionsRef(): CollectionReference<Contribution> {
+  return collection(db, 'contributions').withConverter(contributionConverter);
 }
 
-/** Documento único: config/preferenciaAviso. */
-export function preferenciaAvisoDoc() {
-  return doc(db, 'config', 'preferenciaAviso');
+/** Single document: config/notificationPreference. */
+export function notificationPreferenceDoc() {
+  return doc(db, 'config', 'notificationPreference');
 }
 
-export function toPreferenciaAviso(data: DocumentData | undefined): PreferenciaAviso {
+export function toNotificationPreference(data: DocumentData | undefined): NotificationPreference {
   return {
-    diasAntes: data?.diasAntes ?? 3,
-    ativado: data?.ativado ?? true,
+    daysBefore: data?.daysBefore ?? 3,
+    enabled: data?.enabled ?? true,
   };
 }

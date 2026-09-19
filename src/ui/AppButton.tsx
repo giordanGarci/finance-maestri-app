@@ -15,25 +15,25 @@ interface Props {
 }
 
 export function AppButton({ title, onPress, variant = 'primary', size = 'default', disabled, loading, style }: Props) {
-  const desabilitado = disabled || loading;
+  const isDisabled = disabled || loading;
 
   return (
     <Pressable
       onPress={onPress}
-      disabled={desabilitado}
+      disabled={isDisabled}
       style={({ pressed }) => [
         styles.base,
         size === 'small' ? styles.small : styles.default,
         variantStyles[variant],
-        desabilitado && styles.desabilitado,
-        pressed && !desabilitado && styles.pressionado,
+        isDisabled && styles.disabled,
+        pressed && !isDisabled && styles.pressed,
         style,
       ]}
     >
       {loading ? (
         <ActivityIndicator color={variant === 'outline' ? colors.primary : colors.white} />
       ) : (
-        <Text style={[styles.texto, textVariantStyles[variant], size === 'small' && styles.textoSmall]}>{title}</Text>
+        <Text style={[styles.text, textVariantStyles[variant], size === 'small' && styles.textSmall]}>{title}</Text>
       )}
     </Pressable>
   );
@@ -48,10 +48,10 @@ const styles = StyleSheet.create({
   },
   default: { paddingVertical: 14, paddingHorizontal: spacing.lg },
   small: { paddingVertical: 9, paddingHorizontal: spacing.md },
-  desabilitado: { opacity: 0.5 },
-  pressionado: { opacity: 0.85 },
-  texto: { fontWeight: '700', fontSize: 16 },
-  textoSmall: { fontSize: 13 },
+  disabled: { opacity: 0.5 },
+  pressed: { opacity: 0.85 },
+  text: { fontWeight: '700', fontSize: 16 },
+  textSmall: { fontSize: 13 },
 });
 
 const variantStyles = StyleSheet.create({

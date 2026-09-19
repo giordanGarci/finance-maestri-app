@@ -5,18 +5,18 @@ interface Props extends TextInputProps {
   label: string;
 }
 
-export function TextField({ label, style, ...campoProps }: Props) {
+export function TextField({ label, style, ...fieldProps }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.rotulo}>{label}</Text>
-      <TextInput placeholderTextColor={colors.textFaint} style={[styles.input, style]} {...campoProps} />
+      <Text style={styles.label}>{label}</Text>
+      <TextInput placeholderTextColor={colors.textFaint} style={[styles.input, style]} {...fieldProps} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { marginTop: spacing.md },
-  rotulo: { ...typography.label, marginBottom: spacing.xs },
+  label: { ...typography.label, marginBottom: spacing.xs },
   input: {
     backgroundColor: colors.surface,
     borderWidth: 1,

@@ -1,40 +1,40 @@
-# App de Empréstimos Pessoais
+# Personal Loans App
 
-App pessoal (usuário único) para organizar empréstimos de dinheiro a terceiros: quem deve, quanto, juros e situação de pagamento.
+Personal (single-user) app for organizing money lent to third parties: who owes, how much, interest, and payment status.
 
 ## Language
 
-**Cliente**:
-Pessoa física para quem o dinheiro é emprestado. Pode ter múltiplos Empréstimos ativos simultaneamente, com histórico acumulado.
-_Avoid_: Devedor, Tomador
+**Client**:
+An individual the money is lent to. May have multiple active Loans at once, with accumulated history.
+_Avoid_: Debtor, Borrower
 
-**Empréstimo**:
-Uma operação de crédito concedida a um Cliente: um Principal, uma taxa de Juros fixada na criação, e uma ou mais Parcelas com data de vencimento. "Pagamento único" e "parcelado" são rótulos de exibição inferidos pelo número de Parcelas (1 Parcela = "pagamento único"), não tipos de dados distintos.
-_Avoid_: Crédito, Dívida
+**Loan**:
+A credit operation granted to a Client: a Principal, an Interest rate fixed at creation, and one or more Installments with a due date. "Single payment" and "installment plan" are display labels inferred from the number of Installments (1 Installment = "single payment"), not distinct data types.
+_Avoid_: Credit, Debt
 
 **Principal**:
-O valor emprestado ao Cliente, sem os Juros.
-_Avoid_: Capital emprestado (não confundir com Capital disponível)
+The amount lent to the Client, without Interest.
+_Avoid_: Loaned capital (don't confuse with Available capital)
 
-**Juros**:
-Valor adicional ao Principal, calculado uma única vez na criação do Empréstimo como uma taxa sobre o Principal. Não é recalculado automaticamente por atraso.
-_Avoid_: Taxa de mora, juros compostos
+**Interest**:
+An amount added to the Principal, calculated once at Loan creation as a rate on top of the Principal. Not automatically recalculated for late payments.
+_Avoid_: Late fee, compound interest
 
-**Parcela**:
-Uma fração do total a pagar (Principal + Juros) de um Empréstimo, com data de vencimento própria. Por padrão o valor é sugerido dividindo o total igualmente entre as Parcelas (ajuste de centavos na última), mas o usuário pode desmarcar essa sugestão e editar o valor de cada Parcela manualmente.
-_Avoid_: Prestação
+**Installment**:
+A fraction of the total to be paid (Principal + Interest) for a Loan, with its own due date. By default the amount is suggested by splitting the total evenly across Installments (with a cents adjustment on the last one), but the user can uncheck that suggestion and edit each Installment's amount manually.
+_Avoid_: Payment tranche
 
-**Status da parcela** (em dia / atrasado):
-Derivado comparando a data de vencimento da Parcela com a data atual, combinado com a marcação manual de "paga" feita pelo usuário. Não existe integração bancária automática.
-_Avoid_: Pendente (usar só para "ainda não venceu")
+**Installment status** (on-time / overdue):
+Derived by comparing the Installment's due date with the current date, combined with the manual "paid" flag set by the user. There is no automatic bank integration.
+_Avoid_: Pending (use only for "not due yet")
 
-**Capital disponível**:
-Saldo derivado automaticamente: soma dos Aportes registrados − soma dos Principais dos Empréstimos ativos + soma das Parcelas recebidas. Nunca editado diretamente pelo usuário.
-_Avoid_: Caixa, saldo manual
+**Available capital**:
+A balance derived automatically: sum of registered Contributions − sum of the Principals of active Loans + sum of received Installments. Never edited directly by the user.
+_Avoid_: Cash, manual balance
 
-**Aporte**:
-Registro de dinheiro que o usuário adiciona ao Capital disponível, fora do ciclo de Empréstimos/Parcelas.
-_Avoid_: Depósito
+**Contribution**:
+A record of money the user adds to Available capital, outside the Loan/Installment cycle.
+_Avoid_: Deposit
 
-**Preferência de aviso**:
-Configuração global do app: quantos dias antes do vencimento de uma Parcela o usuário quer ser notificado, e se as notificações estão ativadas. Entregue como notificação local no aparelho.
+**Notification preference**:
+A global app setting: how many days before an Installment's due date the user wants to be notified, and whether notifications are enabled. Delivered as a local notification on the device.

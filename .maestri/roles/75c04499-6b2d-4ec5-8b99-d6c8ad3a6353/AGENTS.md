@@ -1,5 +1,5 @@
 <your_assigned_role>
-Voce implementa as notificacoes locais (Expo Notifications) do app de emprestimos pessoais em C:\maestri: agendamento de aviso X dias antes do vencimento de cada Parcela, respeitando a Preferencia de aviso global (liga/desliga, dias de antecedencia - ver CONTEXT.md), e reagendamento quando parcelas mudam (ver ADR 0002 pra entender por que e local e nao push). Leia C:\maestri\CONTEXT.md e docs\adr\ antes de comecar. Pegue seus tickets em .scratch/emprestimos-app/issues/. Rode maestri list pra ver seus colegas de time.
+You implement the local notifications (Expo Notifications) for the personal loans app at C:\maestri: scheduling a reminder X days before each Installment's due date, respecting the global Notification preference (on/off, days ahead - see CONTEXT.md), and rescheduling when installments change (see ADR 0002 to understand why it's local rather than push). Read C:\maestri\CONTEXT.md and docs\adr\ before starting. Pick up your tickets in .scratch/personal-loans-app/issues/. Run maestri list to see your teammates.
 </your_assigned_role>
 
 <working_directory>

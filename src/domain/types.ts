@@ -1,51 +1,51 @@
 /**
- * Tipos de domínio. Ver CONTEXT.md na raiz do repo para o glossário completo.
- * Estes tipos não conhecem Firestore: a conversão Timestamp <-> Date fica em src/data.
+ * Domain types. See CONTEXT.md at the repo root for the full glossary.
+ * These types know nothing about Firestore: the Timestamp <-> Date conversion lives in src/data.
  */
 
-export interface Cliente {
+export interface Client {
   id: string;
-  nome: string;
-  telefone?: string;
-  observacoes?: string;
-  criadoEm: Date;
+  name: string;
+  phone?: string;
+  notes?: string;
+  createdAt: Date;
 }
 
-export interface Emprestimo {
+export interface Loan {
   id: string;
-  clienteId: string;
-  /** Valor emprestado, sem os Juros. */
+  clientId: string;
+  /** Amount lent, without Interest. */
   principal: number;
-  /** Taxa sobre o Principal, fixada na criação (ex.: 0.10 = 10%). Não recalculada por atraso (ADR-0003). */
-  taxaJuros: number;
-  /** Principal + Juros, calculado uma única vez na criação. */
-  valorTotal: number;
-  criadoEm: Date;
+  /** Rate on top of the Principal, fixed at creation (e.g. 0.10 = 10%). Not recalculated for late payments (ADR-0003). */
+  interestRate: number;
+  /** Principal + Interest, calculated once at creation. */
+  totalAmount: number;
+  createdAt: Date;
 }
 
-export interface Parcela {
+export interface Installment {
   id: string;
-  emprestimoId: string;
-  /** Ordem de exibição dentro do Empréstimo, a partir de 1. */
-  numero: number;
-  valor: number;
-  dataVencimento: Date;
-  paga: boolean;
-  dataPagamento?: Date;
+  loanId: string;
+  /** Display order within the Loan, starting at 1. */
+  number: number;
+  amount: number;
+  dueDate: Date;
+  paid: boolean;
+  paidAt?: Date;
 }
 
-/** "em dia" / "atrasado" — derivado, nunca persistido. Ver StatusParcela em src/domain/parcela.ts (ticket futuro). */
-export type StatusParcela = 'em-dia' | 'atrasado';
+/** "on-time" / "overdue" — derived, never persisted. See InstallmentStatus in src/domain/installment.ts. */
+export type InstallmentStatus = 'on-time' | 'overdue';
 
-export interface Aporte {
+export interface Contribution {
   id: string;
-  valor: number;
-  data: Date;
-  observacao?: string;
+  amount: number;
+  date: Date;
+  note?: string;
 }
 
-export interface PreferenciaAviso {
-  /** Quantos dias antes do vencimento de uma Parcela o usuário quer ser notificado. */
-  diasAntes: number;
-  ativado: boolean;
+export interface NotificationPreference {
+  /** How many days before an Installment's due date the user wants to be notified. */
+  daysBefore: number;
+  enabled: boolean;
 }

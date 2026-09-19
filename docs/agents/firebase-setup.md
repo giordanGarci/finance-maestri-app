@@ -1,61 +1,61 @@
-# Setup manual do Firebase
+# Manual Firebase setup
 
-O código já está preparado para ler a configuração do Firebase de variáveis de
-ambiente (`src/data/firebaseConfig.ts`), mas as chaves de um projeto real só
-podem ser criadas por você no console do Firebase. Siga os passos abaixo uma
-vez; depois disso o app funciona normalmente.
+The code is already set up to read the Firebase configuration from
+environment variables (`src/data/firebaseConfig.ts`), but the keys for a real
+project can only be created by you in the Firebase console. Follow the steps
+below once; after that the app works normally.
 
-## 1. Criar o projeto no console do Firebase
+## 1. Create the project in the Firebase console
 
-1. Acesse https://console.firebase.google.com/ e clique em "Adicionar projeto".
-2. Dê um nome (ex.: "emprestimos-pessoais") e conclua a criação. Não é
-   necessário ativar o Google Analytics para este app.
+1. Go to https://console.firebase.google.com/ and click "Add project".
+2. Give it a name (e.g. "personal-loans") and finish creating it. You don't
+   need to enable Google Analytics for this app.
 
-## 2. Registrar o app e obter as chaves
+## 2. Register the app and get the keys
 
-1. Na tela inicial do projeto, clique no ícone de "Web" (`</>`) para
-   registrar um app web, mesmo sendo um app Expo/React Native — o SDK JS do
-   Firebase usado aqui (`firebase/app`, `firebase/firestore`, `firebase/auth`)
-   é o SDK web, que funciona no Expo em modo managed.
-2. Dê um nome ao app (ex.: "maestri-app") e finalize o registro. Não
-   precisa configurar Firebase Hosting.
-3. O console mostra um objeto `firebaseConfig` com `apiKey`, `authDomain`,
-   `projectId`, `storageBucket`, `messagingSenderId`, `appId`. Copie cada
-   valor para o arquivo `.env` na raiz do repositório (crie a partir de
-   `.env.example`), preenchendo as variáveis `EXPO_PUBLIC_FIREBASE_*`
-   correspondentes.
+1. On the project's home screen, click the "Web" icon (`</>`) to register a
+   web app, even though this is an Expo/React Native app — the Firebase JS
+   SDK used here (`firebase/app`, `firebase/firestore`, `firebase/auth`) is
+   the web SDK, which works in Expo managed workflow.
+2. Give the app a name (e.g. "maestri-app") and finish registering it. You
+   don't need to set up Firebase Hosting.
+3. The console shows a `firebaseConfig` object with `apiKey`, `authDomain`,
+   `projectId`, `storageBucket`, `messagingSenderId`, `appId`. Copy each
+   value into the `.env` file at the root of the repository (create it from
+   `.env.example`), filling in the corresponding `EXPO_PUBLIC_FIREBASE_*`
+   variables.
 
-## 3. Ativar o Firestore
+## 3. Enable Firestore
 
-1. No menu lateral, vá em "Firestore Database" → "Criar banco de dados".
-2. Escolha uma região (qualquer uma próxima de você serve; não é possível
-   trocar depois sem migrar o projeto).
-3. Inicie em modo de produção. Depois de criado, vá na aba "Regras" e cole
-   as regras abaixo, substituindo `OWNER_UID` pelo seu próprio uid do
-   Firebase Auth (você só terá esse uid depois do passo 4; pode deixar as
-   regras padrão e voltar aqui depois):
+1. In the side menu, go to "Firestore Database" → "Create database".
+2. Choose a region (any one close to you works; it can't be changed later
+   without migrating the project).
+3. Start in production mode. Once created, go to the "Rules" tab and paste
+   the rules below, replacing `OWNER_UID` with your own Firebase Auth uid
+   (you'll only have this uid after step 4; you can leave the default rules
+   and come back here later):
 
    ```
    rules_version = '2';
    service cloud.firestore {
      match /databases/{database}/documents {
        function isOwner() {
-         return request.auth != null && request.auth.uid == resource.data.donoId;
+         return request.auth != null && request.auth.uid == resource.data.ownerId;
        }
-       match /clientes/{id} {
+       match /clients/{id} {
          allow read, update, delete: if isOwner();
-         allow create: if request.auth != null && request.auth.uid == request.resource.data.donoId;
+         allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
        }
-       match /emprestimos/{id} {
+       match /loans/{id} {
          allow read, update, delete: if isOwner();
-         allow create: if request.auth != null && request.auth.uid == request.resource.data.donoId;
-         match /parcelas/{parcelaId} {
+         allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
+         match /installments/{installmentId} {
            allow read, write: if request.auth != null;
          }
        }
-       match /aportes/{id} {
+       match /contributions/{id} {
          allow read, update, delete: if isOwner();
-         allow create: if request.auth != null && request.auth.uid == request.resource.data.donoId;
+         allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
        }
        match /config/{id} {
          allow read, write: if request.auth != null;
@@ -64,64 +64,63 @@ vez; depois disso o app funciona normalmente.
    }
    ```
 
-   Como o app é de usuário único, essas regras são intencionalmente simples
-   (qualquer usuário autenticado do seu projeto pode ler/escrever `config` e
-   `parcelas`). Aperte o modelo depois se algum dia o app passar a ter mais
-   de uma conta.
+   Since the app is single-user, these rules are intentionally simple (any
+   authenticated user of your project can read/write `config` and
+   `installments`). Tighten the model later if the app ever grows to support
+   more than one account.
 
-## 4. Ativar o Firebase Auth com e-mail/senha
+## 4. Enable Firebase Auth with email/password
 
-Ver `docs/adr/0006-login-email-senha.md`: o login é por e-mail/senha, não
-Google Sign-In — login com Google exigiria uma biblioteca nativa com client
-ID Android real, o que forçaria development build só para autenticar (ver a
-seção sobre development build mais abaixo).
+See `docs/adr/0006-email-password-login.md`: login is email/password, not
+Google Sign-In — Google login would require a native library with a real
+Android client ID, which would force a development build just to
+authenticate (see the development build section further below).
 
-1. No menu lateral, vá em "Authentication" → "Sign-in method".
-2. Ative o provedor "E-mail/senha" (primeira opção da lista).
-3. Não precisa de mais nenhuma chave para isso no `.env` — o login usa só
-   as variáveis `EXPO_PUBLIC_FIREBASE_*` do passo 2.
-4. Depois do primeiro login/cadastro real no app, copie seu uid em
-   "Authentication" → "Users" e use-o para trocar `OWNER_UID` nas regras do
-   passo 3, se quiser travar o acesso a um único uid em vez de "qualquer
-   usuário autenticado".
+1. In the side menu, go to "Authentication" → "Sign-in method".
+2. Enable the "Email/password" provider (the first item in the list).
+3. No further key is needed in `.env` for this — login only uses the
+   `EXPO_PUBLIC_FIREBASE_*` variables from step 2.
+4. After the first real sign-up/login in the app, copy your uid from
+   "Authentication" → "Users" and use it to replace `OWNER_UID` in the rules
+   from step 3, if you want to lock access down to a single uid instead of
+   "any authenticated user".
 
-## 5. Preencher o `.env` local
+## 5. Fill in the local `.env`
 
 ```
 cp .env.example .env
 ```
 
-Preencha os valores do passo 2. O arquivo `.env` está no `.gitignore` e não
-deve ser commitado.
+Fill in the values from step 2. The `.env` file is in `.gitignore` and
+should not be committed.
 
-## Verificando que funcionou
+## Checking that it worked
 
-Rode `npm run start` (ou `npm run android`/`npm run web`) e confira que o
-app não lança o erro "Firebase não configurado" definido em
-`src/data/firebaseConfig.ts`. Esse erro lista exatamente quais variáveis
-estão faltando.
+Run `npm run start` (or `npm run android`/`npm run web`) and confirm the app
+doesn't throw the "Firebase not configured" error defined in
+`src/data/firebaseConfig.ts`. That error lists exactly which variables are
+missing.
 
-## Notificações locais exigem development build, não Expo Go (login não)
+## Local notifications require a development build, not Expo Go (login doesn't)
 
-O login por e-mail/senha (`src/data/auth.ts`) funciona normalmente no Expo
-Go — só as notificações locais é que exigem development build, conforme
-abaixo.
+Email/password login (`src/data/auth.ts`) works normally in Expo Go — only
+local notifications require a development build, as described below.
 
-A partir do SDK 53, o Android removeu do Expo Go o suporte a notificações
-(mesmo as puramente locais, agendadas no aparelho — ver ADR-0002): o
-próprio `import` de `expo-notifications` já dispara código de push interno
-e derruba o app inteiro no Expo Go. Por isso `src/notifications/` só
-importa esse módulo dinamicamente e vira no-op quando detecta Expo Go
-(`estaNoExpoGo()` em `src/notifications/permissoes.ts`) — o resto do app
-(clientes, empréstimos, capital disponível) continua funcionando
-normalmente, só a notificação de vencimento fica desativada.
+Starting with SDK 53, Android removed notification support from Expo Go
+(even purely local, on-device scheduled ones — see ADR-0002): the mere
+`import` of `expo-notifications` already triggers internal push-related code
+and crashes the whole app in Expo Go. That's why `src/notifications/` only
+imports that module dynamically and becomes a no-op when it detects Expo Go
+(`isExpoGo()` in `src/notifications/permissions.ts`) — the rest of the app
+(clients, loans, available capital) keeps working normally, only the
+due-date notification is disabled.
 
-Para testar a feature de notificações de verdade, rode um development
-build em vez do Expo Go:
+To actually test the notifications feature, run a development build instead
+of Expo Go:
 
 ```
-npx expo run:android   # ou npx expo run:ios
+npx expo run:android   # or npx expo run:ios
 ```
 
-ou gere um build de desenvolvimento pelo EAS (`eas build --profile
-development`), que continua gratuito — só deixa de ser Expo Go.
+or generate a development build via EAS (`eas build --profile
+development`), which remains free — it just stops being Expo Go.

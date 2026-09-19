@@ -4,14 +4,14 @@ import { NavigationContainer } from '@react-navigation/native';
 import { useAuthUser } from './src/data/auth';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { RootNavigator } from './src/navigation/RootNavigator';
-import { useSincronizarNotificacoes } from './src/notifications/useSincronizarNotificacoes';
+import { useSyncNotifications } from './src/notifications/useSyncNotifications';
 import { colors, navigationTheme } from './src/ui/theme';
 
 export default function App() {
-  const { user, carregando } = useAuthUser();
-  useSincronizarNotificacoes(!!user);
+  const { user, loading } = useAuthUser();
+  useSyncNotifications(!!user);
 
-  if (carregando) {
+  if (loading) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="large" color={colors.primary} />

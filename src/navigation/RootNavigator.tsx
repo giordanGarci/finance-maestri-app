@@ -1,12 +1,12 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from './types';
-import { ClientesListaScreen } from '../screens/clientes/ClientesListaScreen';
-import { ClienteFormScreen } from '../screens/clientes/ClienteFormScreen';
-import { ClienteDetalheScreen } from '../screens/clientes/ClienteDetalheScreen';
-import { EmprestimoFormScreen } from '../screens/emprestimos/EmprestimoFormScreen';
-import { EmprestimoDetalheScreen } from '../screens/emprestimos/EmprestimoDetalheScreen';
-import { AportesScreen } from '../screens/aportes/AportesScreen';
-import PreferenciaAvisoScreen from '../screens/PreferenciaAvisoScreen';
+import { ClientsListScreen } from '../screens/clients/ClientsListScreen';
+import { ClientFormScreen } from '../screens/clients/ClientFormScreen';
+import { ClientDetailScreen } from '../screens/clients/ClientDetailScreen';
+import { LoanFormScreen } from '../screens/loans/LoanFormScreen';
+import { LoanDetailScreen } from '../screens/loans/LoanDetailScreen';
+import { ContributionsScreen } from '../screens/contributions/ContributionsScreen';
+import NotificationPreferenceScreen from '../screens/NotificationPreferenceScreen';
 import { colors } from '../ui/theme';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -14,7 +14,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export function RootNavigator() {
   return (
     <Stack.Navigator
-      initialRouteName="ClientesLista"
+      initialRouteName="ClientsList"
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.primary,
@@ -23,24 +23,24 @@ export function RootNavigator() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="ClientesLista" component={ClientesListaScreen} options={{ title: 'Clientes' }} />
-      <Stack.Screen name="ClienteForm" component={ClienteFormScreen} options={{ title: 'Cliente' }} />
-      <Stack.Screen name="ClienteDetalhe" component={ClienteDetalheScreen} options={{ title: 'Detalhe do cliente' }} />
+      <Stack.Screen name="ClientsList" component={ClientsListScreen} options={{ title: 'Clients' }} />
+      <Stack.Screen name="ClientForm" component={ClientFormScreen} options={{ title: 'Client' }} />
+      <Stack.Screen name="ClientDetail" component={ClientDetailScreen} options={{ title: 'Client details' }} />
       <Stack.Screen
-        name="EmprestimoForm"
-        component={EmprestimoFormScreen}
-        options={({ route }) => ({ title: route.params.emprestimo ? 'Editar empréstimo' : 'Novo empréstimo' })}
+        name="LoanForm"
+        component={LoanFormScreen}
+        options={({ route }) => ({ title: route.params.loan ? 'Edit loan' : 'New loan' })}
       />
       <Stack.Screen
-        name="EmprestimoDetalhe"
-        component={EmprestimoDetalheScreen}
-        options={{ title: 'Detalhe do empréstimo' }}
+        name="LoanDetail"
+        component={LoanDetailScreen}
+        options={{ title: 'Loan details' }}
       />
-      <Stack.Screen name="Aportes" component={AportesScreen} options={{ title: 'Aportes' }} />
+      <Stack.Screen name="Contributions" component={ContributionsScreen} options={{ title: 'Contributions' }} />
       <Stack.Screen
-        name="PreferenciaAviso"
-        component={PreferenciaAvisoScreen}
-        options={{ title: 'Preferência de aviso' }}
+        name="NotificationPreference"
+        component={NotificationPreferenceScreen}
+        options={{ title: 'Notification preference' }}
       />
     </Stack.Navigator>
   );

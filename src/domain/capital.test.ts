@@ -1,90 +1,90 @@
 import { describe, expect, it } from 'vitest';
-import { calcularCapitalDisponivel } from './capital';
-import type { Aporte, Emprestimo, Parcela } from './types';
+import { calculateAvailableCapital } from './capital';
+import type { Contribution, Loan, Installment } from './types';
 
-describe('calcularCapitalDisponivel', () => {
-  it('soma aportes, subtrai principais e soma parcelas pagas', () => {
-    const aportes: Aporte[] = [{ id: 'a1', valor: 1000, data: new Date(2026, 0, 1) }];
+describe('calculateAvailableCapital', () => {
+  it('sums contributions, subtracts principals, and adds paid installments', () => {
+    const contributions: Contribution[] = [{ id: 'a1', amount: 1000, date: new Date(2026, 0, 1) }];
 
-    const emprestimos: Emprestimo[] = [
+    const loans: Loan[] = [
       {
         id: 'e1',
-        clienteId: 'c1',
+        clientId: 'c1',
         principal: 300,
-        taxaJuros: 0.1,
-        valorTotal: 330,
-        criadoEm: new Date(2026, 0, 2),
+        interestRate: 0.1,
+        totalAmount: 330,
+        createdAt: new Date(2026, 0, 2),
       },
     ];
 
-    const parcelas: Parcela[] = [
+    const installments: Installment[] = [
       {
         id: 'p1',
-        emprestimoId: 'e1',
-        numero: 1,
-        valor: 330,
-        dataVencimento: new Date(2026, 1, 2),
-        paga: true,
-        dataPagamento: new Date(2026, 1, 1),
+        loanId: 'e1',
+        number: 1,
+        amount: 330,
+        dueDate: new Date(2026, 1, 2),
+        paid: true,
+        paidAt: new Date(2026, 1, 1),
       },
     ];
 
-    expect(calcularCapitalDisponivel(aportes, emprestimos, parcelas)).toBe(1030);
+    expect(calculateAvailableCapital(contributions, loans, installments)).toBe(1030);
   });
 
-  it('continua subtraindo o principal mesmo após a quitação total do empréstimo', () => {
-    const aportes: Aporte[] = [{ id: 'a1', valor: 1000, data: new Date(2026, 0, 1) }];
-    const emprestimos: Emprestimo[] = [
+  it('keeps subtracting the principal even after the loan is fully paid off', () => {
+    const contributions: Contribution[] = [{ id: 'a1', amount: 1000, date: new Date(2026, 0, 1) }];
+    const loans: Loan[] = [
       {
         id: 'e1',
-        clienteId: 'c1',
+        clientId: 'c1',
         principal: 300,
-        taxaJuros: 0.1,
-        valorTotal: 330,
-        criadoEm: new Date(2026, 0, 2),
+        interestRate: 0.1,
+        totalAmount: 330,
+        createdAt: new Date(2026, 0, 2),
       },
     ];
-    const parcelas: Parcela[] = [
+    const installments: Installment[] = [
       {
         id: 'p1',
-        emprestimoId: 'e1',
-        numero: 1,
-        valor: 330,
-        dataVencimento: new Date(2026, 1, 2),
-        paga: true,
+        loanId: 'e1',
+        number: 1,
+        amount: 330,
+        dueDate: new Date(2026, 1, 2),
+        paid: true,
       },
     ];
 
-    const resultado = calcularCapitalDisponivel(aportes, emprestimos, parcelas);
+    const result = calculateAvailableCapital(contributions, loans, installments);
 
-    expect(resultado).toBe(1030);
-    expect(resultado).not.toBe(1000);
-    expect(resultado).not.toBe(1330);
+    expect(result).toBe(1030);
+    expect(result).not.toBe(1000);
+    expect(result).not.toBe(1330);
   });
 
-  it('não conta parcelas não pagas', () => {
-    const aportes: Aporte[] = [];
-    const emprestimos: Emprestimo[] = [
+  it('does not count unpaid installments', () => {
+    const contributions: Contribution[] = [];
+    const loans: Loan[] = [
       {
         id: 'e1',
-        clienteId: 'c1',
+        clientId: 'c1',
         principal: 300,
-        taxaJuros: 0.1,
-        valorTotal: 330,
-        criadoEm: new Date(2026, 0, 2),
+        interestRate: 0.1,
+        totalAmount: 330,
+        createdAt: new Date(2026, 0, 2),
       },
     ];
-    const parcelas: Parcela[] = [
+    const installments: Installment[] = [
       {
         id: 'p1',
-        emprestimoId: 'e1',
-        numero: 1,
-        valor: 330,
-        dataVencimento: new Date(2026, 1, 2),
-        paga: false,
+        loanId: 'e1',
+        number: 1,
+        amount: 330,
+        dueDate: new Date(2026, 1, 2),
+        paid: false,
       },
     ];
 
-    expect(calcularCapitalDisponivel(aportes, emprestimos, parcelas)).toBe(-300);
+    expect(calculateAvailableCapital(contributions, loans, installments)).toBe(-300);
   });
 });

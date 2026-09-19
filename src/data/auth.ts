@@ -1,6 +1,6 @@
 /**
- * Login por e-mail/senha via Firebase Auth (ver docs/adr/0006-login-email-senha.md:
- * trocamos de Google Sign-In pra evitar exigir development build só pra autenticar).
+ * Email/password login via Firebase Auth (see docs/adr/0006-email-password-login.md:
+ * switched from Google Sign-In to avoid requiring a development build just to authenticate).
  */
 import { useEffect, useState } from 'react';
 import {
@@ -12,26 +12,26 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebaseConfig';
 
-export function useAuthUser(): { user: User | null; carregando: boolean } {
+export function useAuthUser(): { user: User | null; loading: boolean } {
   const [user, setUser] = useState<User | null>(null);
-  const [carregando, setCarregando] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     return onAuthStateChanged(auth, (u) => {
       setUser(u);
-      setCarregando(false);
+      setLoading(false);
     });
   }, []);
 
-  return { user, carregando };
+  return { user, loading };
 }
 
-export function criarConta(email: string, senha: string) {
-  return createUserWithEmailAndPassword(auth, email, senha);
+export function createAccount(email: string, password: string) {
+  return createUserWithEmailAndPassword(auth, email, password);
 }
 
-export function entrarComEmailSenha(email: string, senha: string) {
-  return signInWithEmailAndPassword(auth, email, senha);
+export function signInWithEmailPassword(email: string, password: string) {
+  return signInWithEmailAndPassword(auth, email, password);
 }
 
 export function signOutUser() {
