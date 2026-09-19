@@ -69,19 +69,21 @@ vez; depois disso o app funciona normalmente.
    `parcelas`). Aperte o modelo depois se algum dia o app passar a ter mais
    de uma conta.
 
-## 4. Ativar o Firebase Auth com Google
+## 4. Ativar o Firebase Auth com e-mail/senha
+
+Ver `docs/adr/0006-login-email-senha.md`: o login é por e-mail/senha, não
+Google Sign-In — login com Google exigiria uma biblioteca nativa com client
+ID Android real, o que forçaria development build só para autenticar (ver a
+seção sobre development build mais abaixo).
 
 1. No menu lateral, vá em "Authentication" → "Sign-in method".
-2. Ative o provedor "Google".
-3. Em "Authentication" → "Settings" → "Authorized domains", confirme que
-   `localhost` está na lista (necessário para testar no Expo Go/web).
-4. Ainda na tela do provedor Google, copie o "Web client ID" gerado e cole
-   em `EXPO_PUBLIC_GOOGLE_OAUTH_WEB_CLIENT_ID` no `.env`. Esse client ID é
-   usado pelo fluxo de login (`expo-auth-session`, ver ticket de telas) para
-   trocar o token do Google por uma credencial do Firebase Auth.
-5. Depois do primeiro login real, copie seu uid em "Authentication" →
-   "Users" e use-o para trocar `OWNER_UID` nas regras do passo 3, se quiser
-   travar o acesso a um único uid em vez de "qualquer usuário autenticado".
+2. Ative o provedor "E-mail/senha" (primeira opção da lista).
+3. Não precisa de mais nenhuma chave para isso no `.env` — o login usa só
+   as variáveis `EXPO_PUBLIC_FIREBASE_*` do passo 2.
+4. Depois do primeiro login/cadastro real no app, copie seu uid em
+   "Authentication" → "Users" e use-o para trocar `OWNER_UID` nas regras do
+   passo 3, se quiser travar o acesso a um único uid em vez de "qualquer
+   usuário autenticado".
 
 ## 5. Preencher o `.env` local
 
@@ -89,8 +91,8 @@ vez; depois disso o app funciona normalmente.
 cp .env.example .env
 ```
 
-Preencha os valores dos passos 2 e 4. O arquivo `.env` está no
-`.gitignore` e não deve ser commitado.
+Preencha os valores do passo 2. O arquivo `.env` está no `.gitignore` e não
+deve ser commitado.
 
 ## Verificando que funcionou
 
@@ -99,7 +101,11 @@ app não lança o erro "Firebase não configurado" definido em
 `src/data/firebaseConfig.ts`. Esse erro lista exatamente quais variáveis
 estão faltando.
 
-## Notificações locais exigem development build, não Expo Go
+## Notificações locais exigem development build, não Expo Go (login não)
+
+O login por e-mail/senha (`src/data/auth.ts`) funciona normalmente no Expo
+Go — só as notificações locais é que exigem development build, conforme
+abaixo.
 
 A partir do SDK 53, o Android removeu do Expo Go o suporte a notificações
 (mesmo as puramente locais, agendadas no aparelho — ver ADR-0002): o

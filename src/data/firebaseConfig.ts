@@ -5,7 +5,13 @@
  */
 import { initializeApp, getApps, getApp, type FirebaseOptions } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, type Auth } from 'firebase/auth';
+// `getReactNativePersistence` existe em runtime (vem do build React Native de
+// @firebase/auth, que o Metro resolve corretamente a partir de "firebase/auth"),
+// mas falta nos typings publicados desta versão do SDK — daí o @ts-expect-error.
+// @ts-expect-error - ver comentário acima (bug de typings conhecido do firebase-js-sdk)
+import { getReactNativePersistence } from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
@@ -32,4 +38,16 @@ assertConfigured(firebaseConfig);
 
 export const firebaseApp = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const db = getFirestore(firebaseApp);
-export const auth = getAuth(firebaseApp);
+
+// `initializeAuth` só pode ser chamado uma vez por app (senão lança
+// "auth/already-initialized"). No Metro com Fast Refresh este módulo pode
+// reavaliar sem o app reiniciar, daí o fallback para `getAuth` no catch.
+let authInstance: Auth;
+try {
+  authInstance = initializeAuth(firebaseApp, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch {
+  authInstance = getAuth(firebaseApp);
+}
+export const auth = authInstance;

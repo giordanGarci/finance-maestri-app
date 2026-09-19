@@ -93,3 +93,41 @@ telas de Empréstimos/navegação) no momento da implementação, então:
   desenvolvimento em dispositivo físico (ver `permissoes.ts`) e de haver
   Empréstimos/Parcelas reais no Firestore (tickets 02/03/06), então não
   pude validar os critérios de aceite end-to-end nesta sessão.
+
+## Correção: crash no startup no Expo Go (Android)
+
+Bug reportado pelo usuário testando em Android via Expo Go: o app quebrava
+no boot com `[runtime not ready]: Android Push notifications... removed
+from Expo Go`. Causa: `agendamento.ts` importava `expo-notifications`
+estaticamente no topo do arquivo; esse import por si só dispara
+`warnOfExpoGoPushUsage`/`addPushTokenListener` internamente na lib e
+derruba o app no Expo Go a partir do SDK 53 — mesmo o código só usando
+agendamento local, nunca push. `useSincronizarNotificacoes.ts` importava
+`agendamento.ts` incondicionalmente, e `App.tsx` chama
+`useSincronizarNotificacoes` sem guarda nenhuma, então o crash acontecia
+sempre, mesmo deslogado. `estaNoExpoGo()` já existia em `permissoes.ts` mas
+não era usada em lugar nenhum para evitar isso.
+
+Correção aplicada:
+
+- `permissoes.ts` e `agendamento.ts` não importam mais
+  `expo-notifications` no topo do arquivo — só via `import('expo-notifications')`
+  dinâmico, e só depois de checar `estaNoExpoGo()`. Assim o módulo nem
+  chega a ser avaliado no Expo Go.
+- `sincronizarNotificacoes` e `solicitarPermissaoNotificacoes` viram no-op
+  (retornam sem fazer nada / `false`) quando `estaNoExpoGo()`, em vez de
+  quebrar.
+- `useSincronizarNotificacoes` também checa `estaNoExpoGo()` antes de
+  montar os listeners do Firestore (evita escutar `parcelas`/`config` só
+  para chamar uma sincronização que ia ignorar tudo mesmo).
+- `PreferenciaAvisoScreen` mostra um aviso quando `estaNoExpoGo()`
+  explicando que a preferência é salva normalmente, mas os agendamentos só
+  funcionam num development build.
+- `docs/agents/firebase-setup.md` ganhou uma seção "Notificações locais
+  exigem development build, não Expo Go" com o comando (`expo run:android`
+  / `expo run:ios` ou `eas build --profile development`, que continua
+  gratuito).
+
+O restante do app (clientes, empréstimos, capital disponível) não é afetado
+por esse import — nenhum outro módulo importa `expo-notifications`.
+`npx tsc --noEmit` e `npm test` (vitest, 12 testes) passam.
