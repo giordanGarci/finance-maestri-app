@@ -4,6 +4,7 @@ import { parcelaConverter, preferenciaAvisoDoc, toPreferenciaAviso } from '../da
 import { db } from '../data/firebaseConfig';
 import type { Parcela, PreferenciaAviso } from '../domain/types';
 import { sincronizarNotificacoes } from './agendamento';
+import { estaNoExpoGo } from './permissoes';
 
 /**
  * Mantém os agendamentos de notificação coerentes com o estado atual,
@@ -16,11 +17,13 @@ import { sincronizarNotificacoes } from './agendamento';
  *
  * Chamar uma vez na raiz do app. `ativo` deve ficar `false` até haver um
  * usuário logado (as regras do Firestore exigem `request.auth != null` para
- * ler `parcelas`/`config`).
+ * ler `parcelas`/`config`). No-op no Expo Go (ver `permissoes.ts`): não faz
+ * sentido escutar Firestore só para chamar uma sincronização que vai
+ * ignorar tudo de qualquer forma.
  */
 export function useSincronizarNotificacoes(ativo: boolean): void {
   useEffect(() => {
-    if (!ativo) {
+    if (!ativo || estaNoExpoGo()) {
       return;
     }
 

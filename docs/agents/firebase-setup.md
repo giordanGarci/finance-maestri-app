@@ -98,3 +98,24 @@ Rode `npm run start` (ou `npm run android`/`npm run web`) e confira que o
 app não lança o erro "Firebase não configurado" definido em
 `src/data/firebaseConfig.ts`. Esse erro lista exatamente quais variáveis
 estão faltando.
+
+## Notificações locais exigem development build, não Expo Go
+
+A partir do SDK 53, o Android removeu do Expo Go o suporte a notificações
+(mesmo as puramente locais, agendadas no aparelho — ver ADR-0002): o
+próprio `import` de `expo-notifications` já dispara código de push interno
+e derruba o app inteiro no Expo Go. Por isso `src/notifications/` só
+importa esse módulo dinamicamente e vira no-op quando detecta Expo Go
+(`estaNoExpoGo()` em `src/notifications/permissoes.ts`) — o resto do app
+(clientes, empréstimos, capital disponível) continua funcionando
+normalmente, só a notificação de vencimento fica desativada.
+
+Para testar a feature de notificações de verdade, rode um development
+build em vez do Expo Go:
+
+```
+npx expo run:android   # ou npx expo run:ios
+```
+
+ou gere um build de desenvolvimento pelo EAS (`eas build --profile
+development`), que continua gratuito — só deixa de ser Expo Go.

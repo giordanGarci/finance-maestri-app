@@ -1,5 +1,5 @@
-import * as Notifications from 'expo-notifications';
 import type { Parcela, PreferenciaAviso } from '../domain/types';
+import { estaNoExpoGo } from './permissoes';
 
 const MILISSEGUNDOS_POR_DIA = 24 * 60 * 60 * 1000;
 
@@ -13,11 +13,21 @@ function dataDoAviso(dataVencimento: Date, diasAntes: number): Date {
  * vencimento. Chamar sempre que Parcelas ou a Preferência de aviso mudarem
  * (ver ADR-0002: os agendamentos são locais, então precisam ser corrigidos a
  * cada mudança em vez de dependerem de um backend).
+ *
+ * No-op no Expo Go (ver comentário em `permissoes.ts`): nem chega a
+ * importar `expo-notifications`, já que o próprio import derruba o app
+ * nesse ambiente.
  */
 export async function sincronizarNotificacoes(
   parcelas: Parcela[],
   preferencia: PreferenciaAviso
 ): Promise<void> {
+  if (estaNoExpoGo()) {
+    return;
+  }
+
+  const Notifications = await import('expo-notifications');
+
   await Notifications.cancelAllScheduledNotificationsAsync();
 
   if (!preferencia.ativado) {

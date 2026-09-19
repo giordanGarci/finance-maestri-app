@@ -10,7 +10,7 @@ import { db } from '../data/firebaseConfig';
 import { obterPreferenciaAviso, salvarPreferenciaAviso } from '../data/preferenciasRepository';
 import type { PreferenciaAviso } from '../domain/types';
 import { sincronizarNotificacoes } from '../notifications/agendamento';
-import { solicitarPermissaoNotificacoes } from '../notifications/permissoes';
+import { estaNoExpoGo, solicitarPermissaoNotificacoes } from '../notifications/permissoes';
 
 export default function PreferenciaAvisoScreen() {
   const [diasAntes, setDiasAntes] = useState('3');
@@ -52,6 +52,16 @@ export default function PreferenciaAvisoScreen() {
 
   return (
     <View style={styles.container}>
+      {estaNoExpoGo() && (
+        <Text style={styles.aviso}>
+          Notificações exigem um development build — não funcionam no Expo Go
+          (Android, a partir do SDK 53). A preferência é salva normalmente,
+          mas os agendamentos só passam a funcionar rodando
+          `expo run:android`/`expo run:ios` ou um build de desenvolvimento do
+          EAS.
+        </Text>
+      )}
+
       <Text style={styles.label}>Avisar quantos dias antes do vencimento</Text>
       <TextInput
         style={styles.input}
@@ -74,5 +84,6 @@ const styles = StyleSheet.create({
   container: { padding: 16, gap: 16 },
   linha: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   label: { fontSize: 16 },
+  aviso: { fontSize: 13, color: '#a15c00' },
   input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 8, fontSize: 16 },
 });
