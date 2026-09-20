@@ -57,6 +57,10 @@ below once; after that the app works normally.
          allow read, update, delete: if isOwner();
          allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
        }
+       match /withdrawals/{id} {
+         allow read, update, delete: if isOwner();
+         allow create: if request.auth != null && request.auth.uid == request.resource.data.ownerId;
+       }
        match /config/{id} {
          allow read, write: if request.auth != null;
        }

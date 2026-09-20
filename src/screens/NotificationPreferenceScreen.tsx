@@ -60,23 +60,23 @@ export default function NotificationPreferenceScreen() {
       {isExpoGo() && (
         <Card style={styles.warningCard}>
           <Text style={styles.warning}>
-            Notifications require a development build, they don't work in Expo Go (Android, from SDK 53 on). The
-            preference is saved normally, but schedules only start working after running `expo run:android` /
-            `expo run:ios` or an EAS development build.
+            Notificações exigem um development build, não funcionam no Expo Go (Android, a partir do SDK 53). A
+            preferência é salva normalmente, mas os agendamentos só passam a funcionar rodando `expo run:android` /
+            `expo run:ios` ou um build de desenvolvimento do EAS.
           </Text>
         </Card>
       )}
 
       <Card>
         <TextField
-          label="Notify how many days before the due date"
+          label="Avisar quantos dias antes do vencimento"
           keyboardType="number-pad"
           value={daysBefore}
           onChangeText={setDaysBefore}
         />
 
         <View style={styles.row}>
-          <Text style={styles.label}>Notifications enabled</Text>
+          <Text style={styles.label}>Notificações ativadas</Text>
           <Switch
             value={enabled}
             onValueChange={setEnabled}
@@ -87,7 +87,7 @@ export default function NotificationPreferenceScreen() {
       </Card>
 
       <AppButton
-        title={saving ? 'Saving...' : 'Save'}
+        title={saving ? 'Salvando...' : 'Salvar'}
         onPress={save}
         disabled={saving}
         loading={saving}

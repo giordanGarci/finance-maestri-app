@@ -44,6 +44,13 @@ export interface Contribution {
   note?: string;
 }
 
+export interface Withdrawal {
+  id: string;
+  amount: number;
+  date: Date;
+  note?: string;
+}
+
 export interface NotificationPreference {
   /** How many days before an Installment's due date the user wants to be notified. */
   daysBefore: number;

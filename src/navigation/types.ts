@@ -7,5 +7,6 @@ export type RootStackParamList = {
   LoanForm: { clientId: string; loan?: Loan };
   LoanDetail: { loan: Loan };
   Contributions: undefined;
+  UpcomingPayments: undefined;
   NotificationPreference: undefined;
 };

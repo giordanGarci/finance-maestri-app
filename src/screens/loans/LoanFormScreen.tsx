@@ -102,7 +102,7 @@ export function LoanFormScreen({ route, navigation }: Props) {
 
   async function save() {
     if (principal <= 0) {
-      setError('Enter a Principal amount greater than zero.');
+      setError('Informe um valor de Principal maior que zero.');
       return;
     }
     setError(null);
@@ -136,50 +136,50 @@ export function LoanFormScreen({ route, navigation }: Props) {
           value={principalText}
           onChangeText={setPrincipalText}
           keyboardType="decimal-pad"
-          placeholder="500.00"
+          placeholder="500,00"
         />
         <TextField
-          label="Interest (%) *"
+          label="Juros (%) *"
           value={interestRateText}
           onChangeText={setInterestRateText}
           keyboardType="decimal-pad"
           placeholder="10"
         />
         <TextField
-          label="Number of installments *"
+          label="Quantidade de parcelas *"
           value={quantityText}
           onChangeText={setQuantityText}
           keyboardType="number-pad"
           placeholder="1"
         />
         <TextField
-          label="Interval between installments (days)"
+          label="Intervalo entre parcelas (dias)"
           value={intervalDaysText}
           onChangeText={setIntervalDaysText}
           keyboardType="number-pad"
           placeholder="30"
         />
         <TextField
-          label="First installment due on (dd/mm/yyyy)"
+          label="Primeira parcela vence em (dd/mm/aaaa)"
           value={dateText}
           onChangeText={setDateText}
-          placeholder="dd/mm/yyyy"
+          placeholder="dd/mm/aaaa"
         />
       </Card>
 
       <Card style={styles.cardTotal}>
-        <Text style={styles.totalLabel}>Total amount</Text>
+        <Text style={styles.totalLabel}>Valor total</Text>
         <Text style={styles.total}>{currencyFormat.format(totalAmount)}</Text>
         <View style={styles.typeBadge}>
           <Text style={styles.typeBadgeText}>
-            {quantity === 1 ? 'Single payment' : `Split into ${quantity}x`}
+            {quantity === 1 ? 'Pagamento único' : `Parcelado em ${quantity}x`}
           </Text>
         </View>
       </Card>
 
       <Card style={styles.card}>
         <View style={styles.editRow}>
-          <Text style={styles.switchLabel}>Edit installments manually</Text>
+          <Text style={styles.switchLabel}>Editar parcelas manualmente</Text>
           <Switch
             value={manualEdit}
             onValueChange={toggleManualEdit}
@@ -212,7 +212,7 @@ export function LoanFormScreen({ route, navigation }: Props) {
 
         {manualEdit && Math.abs(installmentsSum - totalAmount) > 0.01 ? (
           <Text style={styles.warning}>
-            Sum of installments ({currencyFormat.format(installmentsSum)}) differs from the total amount (
+            Soma das parcelas ({currencyFormat.format(installmentsSum)}) diferente do valor total (
             {currencyFormat.format(totalAmount)}).
           </Text>
         ) : null}
@@ -221,7 +221,7 @@ export function LoanFormScreen({ route, navigation }: Props) {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <AppButton
-        title={saving ? 'Saving...' : editMode ? 'Save changes' : 'Save loan'}
+        title={saving ? 'Salvando...' : editMode ? 'Salvar alterações' : 'Salvar empréstimo'}
         onPress={save}
         disabled={saving}
         loading={saving}

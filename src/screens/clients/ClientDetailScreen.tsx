@@ -7,6 +7,7 @@ import { listLoansByClient } from '../../data/loansRepository';
 import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
 import { ScreenContainer } from '../../ui/ScreenContainer';
+import { useBottomListPadding } from '../../ui/useBottomListPadding';
 import { colors, spacing, typography } from '../../ui/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientDetail'>;
@@ -16,6 +17,7 @@ const currencyFormat = new Intl.NumberFormat('pt-BR', { style: 'currency', curre
 export function ClientDetailScreen({ route, navigation }: Props) {
   const { client } = route.params;
   const [loans, setLoans] = useState<Loan[]>([]);
+  const bottomPadding = useBottomListPadding();
 
   useEffect(() => listLoansByClient(client.id, setLoans), [client.id]);
 
@@ -34,10 +36,15 @@ export function ClientDetailScreen({ route, navigation }: Props) {
                 style={styles.secondaryButton}
                 onPress={() => navigation.navigate('ClientForm', { client })}
               >
-                <Text style={styles.secondaryButtonText}>Edit client</Text>
+                <Text style={styles.secondaryButtonText}>Editar cliente</Text>
               </Pressable>
             </Card>
-            <Text style={styles.sectionTitle}>Loans</Text>
+            <AppButton
+              title="+ Novo empréstimo"
+              onPress={() => navigation.navigate('LoanForm', { clientId: client.id })}
+              style={styles.newButton}
+            />
+            <Text style={styles.sectionTitle}>Empréstimos</Text>
           </>
         }
         renderItem={({ item }) => (
@@ -46,7 +53,7 @@ export function ClientDetailScreen({ route, navigation }: Props) {
               <View>
                 <Text style={styles.rowTitle}>{currencyFormat.format(item.totalAmount)}</Text>
                 <Text style={styles.rowSubtitle}>
-                  Principal: {currencyFormat.format(item.principal)} · Interest: {(item.interestRate * 100).toFixed(0)}%
+                  Principal: {currencyFormat.format(item.principal)} · Juros: {(item.interestRate * 100).toFixed(0)}%
                 </Text>
               </View>
               <Text style={styles.arrow}>›</Text>
@@ -54,21 +61,16 @@ export function ClientDetailScreen({ route, navigation }: Props) {
           </Pressable>
         )}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        ListEmptyComponent={<Text style={styles.empty}>No loans yet.</Text>}
-        contentContainerStyle={styles.list}
+        ListEmptyComponent={<Text style={styles.empty}>Nenhum empréstimo ainda.</Text>}
+        contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
       />
-      <View style={styles.footer}>
-        <AppButton
-          title="+ New loan"
-          onPress={() => navigation.navigate('LoanForm', { clientId: client.id })}
-        />
-      </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.lg, paddingBottom: 100 },
+  list: { padding: spacing.lg },
+  newButton: { marginBottom: spacing.lg },
   data: { marginBottom: spacing.lg },
   name: { fontSize: 22, fontWeight: '800', color: colors.text },
   detailText: { fontSize: 14, color: colors.textMuted, marginTop: spacing.xs },
@@ -80,10 +82,4 @@ const styles = StyleSheet.create({
   rowSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 3 },
   arrow: { fontSize: 22, color: colors.textFaint, fontWeight: '300' },
   empty: { textAlign: 'center', marginTop: spacing.lg, color: colors.textMuted },
-  footer: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.lg,
-  },
 });

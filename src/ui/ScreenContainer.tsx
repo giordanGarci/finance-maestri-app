@@ -1,5 +1,6 @@
 import { ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import { colors } from './theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { colors, spacing } from './theme';
 
 interface Props {
   children: React.ReactNode;
@@ -9,11 +10,13 @@ interface Props {
 }
 
 export function ScreenContainer({ children, scroll, style, keyboardShouldPersistTaps }: Props) {
+  const insets = useSafeAreaInsets();
+
   if (scroll) {
     return (
       <ScrollView
         style={styles.root}
-        contentContainerStyle={[styles.scrollContent, style]}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: insets.bottom + spacing.xl }, style]}
         keyboardShouldPersistTaps={keyboardShouldPersistTaps ?? 'handled'}
       >
         {children}
@@ -26,5 +29,5 @@ export function ScreenContainer({ children, scroll, style, keyboardShouldPersist
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.background },
-  scrollContent: { padding: 16, paddingBottom: 40 },
+  scrollContent: { padding: 16 },
 });

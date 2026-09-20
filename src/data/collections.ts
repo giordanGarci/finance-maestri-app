@@ -5,11 +5,12 @@
  * loans/{loanId}
  *   loans/{loanId}/installments/{installmentId}   <- subcollection
  * contributions/{contributionId}
+ * withdrawals/{withdrawalId}
  * config/notificationPreference                    <- single document
  *
- * Every document in clients/loans/installments/contributions has an `ownerId`
- * field (Firebase Auth uid) used by the security rules, since the app is
- * single-user but the data is still tied to an account. See
+ * Every document in clients/loans/installments/contributions/withdrawals has
+ * an `ownerId` field (Firebase Auth uid) used by the security rules, since
+ * the app is single-user but the data is still tied to an account. See
  * docs/agents/firebase-setup.md for the suggested rules.
  */
 import {
@@ -22,7 +23,7 @@ import {
   Timestamp,
 } from 'firebase/firestore';
 import { db } from './firebaseConfig';
-import type { Contribution, Client, Loan, Installment, NotificationPreference } from '../domain/types';
+import type { Contribution, Client, Loan, Installment, NotificationPreference, Withdrawal } from '../domain/types';
 
 function converter<TDomain extends { id: string }>(
   toFirestoreFields: (value: Omit<TDomain, 'id'>) => DocumentData,
@@ -121,6 +122,24 @@ export function installmentsRef(loanId: string): CollectionReference<Installment
 
 export function contributionsRef(): CollectionReference<Contribution> {
   return collection(db, 'contributions').withConverter(contributionConverter);
+}
+
+export const withdrawalConverter = converter<Withdrawal>(
+  (w) => ({
+    amount: w.amount,
+    date: Timestamp.fromDate(w.date),
+    note: w.note ?? null,
+  }),
+  (data, id) => ({
+    id,
+    amount: data.amount,
+    date: (data.date as Timestamp).toDate(),
+    note: data.note ?? undefined,
+  })
+);
+
+export function withdrawalsRef(): CollectionReference<Withdrawal> {
+  return collection(db, 'withdrawals').withConverter(withdrawalConverter);
 }
 
 /** Single document: config/notificationPreference. */

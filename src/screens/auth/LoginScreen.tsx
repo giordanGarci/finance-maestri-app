@@ -23,7 +23,7 @@ export function LoginScreen() {
         await signInWithEmailPassword(email, password);
       }
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Failed to authenticate.');
+      setError(e instanceof Error ? e.message : 'Falha ao autenticar.');
     } finally {
       setSubmitting(false);
     }
@@ -32,20 +32,20 @@ export function LoginScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.brand}>💰</Text>
-      <Text style={styles.title}>Loans</Text>
-      <Text style={styles.subtitle}>Keep clients, loans, and installments organized in one place</Text>
+      <Text style={styles.title}>Empréstimos</Text>
+      <Text style={styles.subtitle}>Organize clientes, empréstimos e parcelas em um só lugar</Text>
 
       <Card>
         <TextField
-          label="Email"
-          placeholder="you@email.com"
+          label="E-mail"
+          placeholder="voce@email.com"
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
         <TextField
-          label="Password"
+          label="Senha"
           placeholder="••••••••"
           secureTextEntry
           value={password}
@@ -55,14 +55,14 @@ export function LoginScreen() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
 
         <AppButton
-          title={mode === 'create-account' ? 'Create account' : 'Sign in'}
+          title={mode === 'create-account' ? 'Criar conta' : 'Entrar'}
           onPress={confirm}
           disabled={submitting || !email || !password}
           loading={submitting}
           style={styles.primaryButton}
         />
         <AppButton
-          title={mode === 'create-account' ? 'I already have an account, sign in' : 'Create my account'}
+          title={mode === 'create-account' ? 'Já tenho conta, entrar' : 'Criar minha conta'}
           onPress={() => setMode(mode === 'create-account' ? 'sign-in' : 'create-account')}
           variant="secondary"
           style={styles.secondaryButton}

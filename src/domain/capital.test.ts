@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { calculateAvailableCapital } from './capital';
-import type { Contribution, Loan, Installment } from './types';
+import type { Contribution, Loan, Installment, Withdrawal } from './types';
 
 describe('calculateAvailableCapital', () => {
   it('sums contributions, subtracts principals, and adds paid installments', () => {
     const contributions: Contribution[] = [{ id: 'a1', amount: 1000, date: new Date(2026, 0, 1) }];
+    const withdrawals: Withdrawal[] = [];
 
     const loans: Loan[] = [
       {
@@ -29,11 +30,12 @@ describe('calculateAvailableCapital', () => {
       },
     ];
 
-    expect(calculateAvailableCapital(contributions, loans, installments)).toBe(1030);
+    expect(calculateAvailableCapital(contributions, withdrawals, loans, installments)).toBe(1030);
   });
 
   it('keeps subtracting the principal even after the loan is fully paid off', () => {
     const contributions: Contribution[] = [{ id: 'a1', amount: 1000, date: new Date(2026, 0, 1) }];
+    const withdrawals: Withdrawal[] = [];
     const loans: Loan[] = [
       {
         id: 'e1',
@@ -55,7 +57,7 @@ describe('calculateAvailableCapital', () => {
       },
     ];
 
-    const result = calculateAvailableCapital(contributions, loans, installments);
+    const result = calculateAvailableCapital(contributions, withdrawals, loans, installments);
 
     expect(result).toBe(1030);
     expect(result).not.toBe(1000);
@@ -64,6 +66,7 @@ describe('calculateAvailableCapital', () => {
 
   it('does not count unpaid installments', () => {
     const contributions: Contribution[] = [];
+    const withdrawals: Withdrawal[] = [];
     const loans: Loan[] = [
       {
         id: 'e1',
@@ -85,6 +88,13 @@ describe('calculateAvailableCapital', () => {
       },
     ];
 
-    expect(calculateAvailableCapital(contributions, loans, installments)).toBe(-300);
+    expect(calculateAvailableCapital(contributions, withdrawals, loans, installments)).toBe(-300);
+  });
+
+  it('subtracts withdrawals from the available capital', () => {
+    const contributions: Contribution[] = [{ id: 'a1', amount: 1000, date: new Date(2026, 0, 1) }];
+    const withdrawals: Withdrawal[] = [{ id: 'w1', amount: 400, date: new Date(2026, 0, 3) }];
+
+    expect(calculateAvailableCapital(contributions, withdrawals, [], [])).toBe(600);
   });
 });

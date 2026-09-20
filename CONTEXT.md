@@ -29,12 +29,16 @@ Derived by comparing the Installment's due date with the current date, combined 
 _Avoid_: Pending (use only for "not due yet")
 
 **Available capital**:
-A balance derived automatically: sum of registered Contributions − sum of the Principals of active Loans + sum of received Installments. Never edited directly by the user.
+A balance derived automatically: sum of registered Contributions − sum of registered Withdrawals − sum of the Principals of active Loans + sum of received Installments. Never edited directly by the user.
 _Avoid_: Cash, manual balance
 
 **Contribution**:
 A record of money the user adds to Available capital, outside the Loan/Installment cycle.
 _Avoid_: Deposit
+
+**Withdrawal**:
+A record of money the user takes out of Available capital, outside the Loan/Installment cycle. The counterpart to a Contribution.
+_Avoid_: Deposit, expense
 
 **Notification preference**:
 A global app setting: how many days before an Installment's due date the user wants to be notified, and whether notifications are enabled. Delivered as a local notification on the device.

@@ -10,6 +10,7 @@ import { AvailableCapitalSummary } from '../components/AvailableCapitalSummary';
 import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
 import { ScreenContainer } from '../../ui/ScreenContainer';
+import { useBottomListPadding } from '../../ui/useBottomListPadding';
 import { colors, radius, spacing, typography } from '../../ui/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientsList'>;
@@ -35,7 +36,7 @@ function ClientRow({ client, onPress }: { client: Client; onPress: () => void })
         <View style={styles.rowInfo}>
           <Text style={styles.name}>{client.name}</Text>
           <Text style={styles.indicator}>
-            {loans.length} {loans.length === 1 ? 'loan' : 'loans'}
+            {loans.length} {loans.length === 1 ? 'empréstimo' : 'empréstimos'}
           </Text>
         </View>
         <Text style={styles.arrow}>›</Text>
@@ -46,6 +47,7 @@ function ClientRow({ client, onPress }: { client: Client; onPress: () => void })
 
 export function ClientsListScreen({ navigation }: Props) {
   const [clients, setClients] = useState<Client[]>([]);
+  const bottomPadding = useBottomListPadding();
 
   useEffect(() => listClients(setClients), []);
 
@@ -54,10 +56,10 @@ export function ClientsListScreen({ navigation }: Props) {
       headerRight: () => (
         <View style={styles.headerActions}>
           <Pressable onPress={() => navigation.navigate('NotificationPreference')} hitSlop={8}>
-            <Text style={styles.headerAction}>Preferences</Text>
+            <Text style={styles.headerAction}>Preferências</Text>
           </Pressable>
           <Pressable onPress={() => signOutUser()} hitSlop={8}>
-            <Text style={styles.headerAction}>Sign out</Text>
+            <Text style={styles.headerAction}>Sair</Text>
           </Pressable>
         </View>
       ),
@@ -73,27 +75,33 @@ export function ClientsListScreen({ navigation }: Props) {
           <>
             <AvailableCapitalSummary />
             <Pressable style={styles.contributionsLink} onPress={() => navigation.navigate('Contributions')}>
-              <Text style={styles.contributionsLinkText}>View contributions ›</Text>
+              <Text style={styles.contributionsLinkText}>Ver aportes e retiradas ›</Text>
             </Pressable>
-            <Text style={styles.sectionTitle}>Clients</Text>
+            <Pressable style={styles.contributionsLink} onPress={() => navigation.navigate('UpcomingPayments')}>
+              <Text style={styles.contributionsLinkText}>Ver próximos pagamentos ›</Text>
+            </Pressable>
+            <AppButton
+              title="+ Novo cliente"
+              onPress={() => navigation.navigate('ClientForm')}
+              style={styles.newButton}
+            />
+            <Text style={styles.sectionTitle}>Clientes</Text>
           </>
         }
         renderItem={({ item }) => (
           <ClientRow client={item} onPress={() => navigation.navigate('ClientDetail', { client: item })} />
         )}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        ListEmptyComponent={<Text style={styles.empty}>No clients registered yet.</Text>}
-        contentContainerStyle={styles.list}
+        ListEmptyComponent={<Text style={styles.empty}>Nenhum cliente cadastrado ainda.</Text>}
+        contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
       />
-      <View style={styles.footer}>
-        <AppButton title="+ New client" onPress={() => navigation.navigate('ClientForm')} />
-      </View>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.lg, paddingBottom: 100 },
+  list: { padding: spacing.lg },
+  newButton: { marginTop: spacing.lg },
   headerActions: { flexDirection: 'row', gap: spacing.lg },
   headerAction: { color: colors.primary, fontWeight: '600' },
   contributionsLink: { marginTop: spacing.md, marginBottom: spacing.md },
@@ -115,10 +123,4 @@ const styles = StyleSheet.create({
   indicator: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
   arrow: { fontSize: 22, color: colors.textFaint, fontWeight: '300' },
   empty: { textAlign: 'center', marginTop: spacing.xl, color: colors.textMuted },
-  footer: {
-    position: 'absolute',
-    left: spacing.lg,
-    right: spacing.lg,
-    bottom: spacing.lg,
-  },
 });

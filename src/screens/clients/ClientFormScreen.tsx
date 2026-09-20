@@ -22,7 +22,7 @@ export function ClientFormScreen({ route, navigation }: Props) {
   async function save() {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError('Enter the client name.');
+      setError('Informe o nome do cliente.');
       return;
     }
 
@@ -50,19 +50,19 @@ export function ClientFormScreen({ route, navigation }: Props) {
   return (
     <ScreenContainer scroll>
       <Card>
-        <TextField label="Name *" value={name} onChangeText={setName} placeholder="Client name" />
+        <TextField label="Nome *" value={name} onChangeText={setName} placeholder="Nome do cliente" />
         <TextField
-          label="Phone"
+          label="Telefone"
           value={phone}
           onChangeText={setPhone}
-          placeholder="(optional)"
+          placeholder="(opcional)"
           keyboardType="phone-pad"
         />
         <TextField
-          label="Notes"
+          label="Observações"
           value={notes}
           onChangeText={setNotes}
-          placeholder="(optional)"
+          placeholder="(opcional)"
           style={styles.multiline}
           multiline
         />
@@ -71,7 +71,7 @@ export function ClientFormScreen({ route, navigation }: Props) {
       {error ? <Text style={styles.error}>{error}</Text> : null}
 
       <AppButton
-        title={saving ? 'Saving...' : 'Save'}
+        title={saving ? 'Salvando...' : 'Salvar'}
         onPress={save}
         disabled={saving}
         loading={saving}

@@ -1,18 +1,34 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useAvailableCapital } from '../hooks/useAvailableCapital';
 import { Card } from '../../ui/Card';
+import { EyeIcon } from '../../ui/EyeIcon';
 import { colors, spacing, typography } from '../../ui/theme';
 
 const currencyFormat = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const MASKED_VALUE = 'R$ ••••••';
 
 export function AvailableCapitalSummary() {
   const capital = useAvailableCapital();
+  const [visible, setVisible] = useState(true);
+
+  const displayValue = capital === null ? '...' : visible ? currencyFormat.format(capital) : MASKED_VALUE;
 
   return (
     <Card style={styles.container}>
-      <View>
-        <Text style={styles.label}>Available capital</Text>
-        <Text style={styles.value}>{capital === null ? '...' : currencyFormat.format(capital)}</Text>
+      <View style={styles.row}>
+        <View>
+          <Text style={styles.label}>Capital disponível</Text>
+          <Text style={styles.value}>{displayValue}</Text>
+        </View>
+        <Pressable
+          onPress={() => setVisible((current) => !current)}
+          hitSlop={12}
+          style={styles.eyeButton}
+          accessibilityLabel={visible ? 'Ocultar saldo' : 'Mostrar saldo'}
+        >
+          <EyeIcon open={visible} />
+        </Pressable>
       </View>
     </Card>
   );
@@ -21,6 +37,11 @@ export function AvailableCapitalSummary() {
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.primary,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
   },
   label: {
     ...typography.caption,
@@ -32,5 +53,9 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.white,
     marginTop: spacing.xs,
+  },
+  eyeButton: {
+    padding: spacing.xs,
+    marginTop: 2,
   },
 });

@@ -6,6 +6,7 @@ import { ClientDetailScreen } from '../screens/clients/ClientDetailScreen';
 import { LoanFormScreen } from '../screens/loans/LoanFormScreen';
 import { LoanDetailScreen } from '../screens/loans/LoanDetailScreen';
 import { ContributionsScreen } from '../screens/contributions/ContributionsScreen';
+import { UpcomingPaymentsScreen } from '../screens/payments/UpcomingPaymentsScreen';
 import NotificationPreferenceScreen from '../screens/NotificationPreferenceScreen';
 import { colors } from '../ui/theme';
 
@@ -23,24 +24,29 @@ export function RootNavigator() {
         contentStyle: { backgroundColor: colors.background },
       }}
     >
-      <Stack.Screen name="ClientsList" component={ClientsListScreen} options={{ title: 'Clients' }} />
-      <Stack.Screen name="ClientForm" component={ClientFormScreen} options={{ title: 'Client' }} />
-      <Stack.Screen name="ClientDetail" component={ClientDetailScreen} options={{ title: 'Client details' }} />
+      <Stack.Screen name="ClientsList" component={ClientsListScreen} options={{ title: 'Clientes' }} />
+      <Stack.Screen name="ClientForm" component={ClientFormScreen} options={{ title: 'Cliente' }} />
+      <Stack.Screen name="ClientDetail" component={ClientDetailScreen} options={{ title: 'Detalhe do cliente' }} />
       <Stack.Screen
         name="LoanForm"
         component={LoanFormScreen}
-        options={({ route }) => ({ title: route.params.loan ? 'Edit loan' : 'New loan' })}
+        options={({ route }) => ({ title: route.params.loan ? 'Editar empréstimo' : 'Novo empréstimo' })}
       />
       <Stack.Screen
         name="LoanDetail"
         component={LoanDetailScreen}
-        options={{ title: 'Loan details' }}
+        options={{ title: 'Detalhe do empréstimo' }}
       />
-      <Stack.Screen name="Contributions" component={ContributionsScreen} options={{ title: 'Contributions' }} />
+      <Stack.Screen name="Contributions" component={ContributionsScreen} options={{ title: 'Aportes e retiradas' }} />
+      <Stack.Screen
+        name="UpcomingPayments"
+        component={UpcomingPaymentsScreen}
+        options={{ title: 'Próximos pagamentos' }}
+      />
       <Stack.Screen
         name="NotificationPreference"
         component={NotificationPreferenceScreen}
-        options={{ title: 'Notification preference' }}
+        options={{ title: 'Preferência de aviso' }}
       />
     </Stack.Navigator>
   );

@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAuthUser } from './src/data/auth';
 import { LoginScreen } from './src/screens/auth/LoginScreen';
 import { RootNavigator } from './src/navigation/RootNavigator';
@@ -13,27 +14,33 @@ export default function App() {
 
   if (loading) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="large" color={colors.primary} />
-        <StatusBar style="dark" />
-      </View>
+      <SafeAreaProvider>
+        <View style={styles.container}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <StatusBar style="dark" />
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   if (!user) {
     return (
-      <View style={styles.container}>
-        <LoginScreen />
-        <StatusBar style="dark" />
-      </View>
+      <SafeAreaProvider>
+        <View style={styles.container}>
+          <LoginScreen />
+          <StatusBar style="dark" />
+        </View>
+      </SafeAreaProvider>
     );
   }
 
   return (
-    <NavigationContainer theme={navigationTheme}>
-      <RootNavigator />
-      <StatusBar style="dark" />
-    </NavigationContainer>
+    <SafeAreaProvider>
+      <NavigationContainer theme={navigationTheme}>
+        <RootNavigator />
+        <StatusBar style="dark" />
+      </NavigationContainer>
+    </SafeAreaProvider>
   );
 }
 

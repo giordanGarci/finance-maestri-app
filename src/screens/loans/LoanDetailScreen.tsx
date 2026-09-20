@@ -7,6 +7,7 @@ import { installmentStatus } from '../../domain/installment';
 import { listInstallments, markInstallmentPaid, watchLoan } from '../../data/loansRepository';
 import { Card } from '../../ui/Card';
 import { ScreenContainer } from '../../ui/ScreenContainer';
+import { useBottomListPadding } from '../../ui/useBottomListPadding';
 import { colors, radius, spacing, typography } from '../../ui/theme';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LoanDetail'>;
@@ -17,6 +18,7 @@ export function LoanDetailScreen({ route, navigation }: Props) {
   const { loan: initialLoan } = route.params;
   const [loan, setLoan] = useState(initialLoan);
   const [installments, setInstallments] = useState<Installment[]>([]);
+  const bottomPadding = useBottomListPadding();
 
   useEffect(
     () => watchLoan(initialLoan.id, (updated) => updated && setLoan(updated)),
@@ -32,19 +34,19 @@ export function LoanDetailScreen({ route, navigation }: Props) {
           onPress={() => navigation.navigate('LoanForm', { clientId: loan.clientId, loan })}
           hitSlop={8}
         >
-          <Text style={styles.headerAction}>Edit</Text>
+          <Text style={styles.headerAction}>Editar</Text>
         </Pressable>
       ),
     });
   }, [navigation, loan]);
 
-  const paymentType = installments.length === 1 ? 'Single payment' : `Split into ${installments.length}x`;
+  const paymentType = installments.length === 1 ? 'Pagamento único' : `Parcelado em ${installments.length}x`;
 
   async function markPaid(installmentId: string) {
     try {
       await markInstallmentPaid(loan.id, installmentId);
     } catch (error) {
-      Alert.alert('Error marking installment', String(error));
+      Alert.alert('Erro ao marcar parcela', String(error));
     }
   }
 
@@ -53,7 +55,7 @@ export function LoanDetailScreen({ route, navigation }: Props) {
       <FlatList
         data={installments}
         keyExtractor={(installment) => installment.id}
-        contentContainerStyle={styles.list}
+        contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
         ListHeaderComponent={
           <>
             <Card style={styles.summary}>
@@ -62,7 +64,7 @@ export function LoanDetailScreen({ route, navigation }: Props) {
                 <Text style={styles.summaryValue}>{currencyFormat.format(loan.principal)}</Text>
               </View>
               <View style={styles.summaryRow}>
-                <Text style={styles.summaryLabel}>Interest</Text>
+                <Text style={styles.summaryLabel}>Juros</Text>
                 <Text style={styles.summaryValue}>{(loan.interestRate * 100).toFixed(0)}%</Text>
               </View>
               <View style={styles.separator} />
@@ -76,19 +78,19 @@ export function LoanDetailScreen({ route, navigation }: Props) {
                 </View>
               ) : null}
             </Card>
-            <Text style={styles.sectionTitle}>Installments</Text>
+            <Text style={styles.sectionTitle}>Parcelas</Text>
           </>
         }
         renderItem={({ item }) => {
           const status = installmentStatus(item, new Date());
-          const label = item.paid ? 'Paid' : status === 'overdue' ? 'Overdue' : 'On time';
+          const label = item.paid ? 'Pago' : status === 'overdue' ? 'Atrasado' : 'Em dia';
           const statusColor = item.paid ? colors.success : status === 'overdue' ? colors.danger : colors.primary;
           const statusBg = item.paid ? colors.successSoft : status === 'overdue' ? colors.dangerSoft : colors.primarySoft;
           return (
             <Card style={styles.installmentCard}>
               <View>
-                <Text style={styles.installmentNumber}>Installment {item.number}</Text>
-                <Text style={styles.installmentDate}>Due {item.dueDate.toLocaleDateString('pt-BR')}</Text>
+                <Text style={styles.installmentNumber}>Parcela {item.number}</Text>
+                <Text style={styles.installmentDate}>Vence em {item.dueDate.toLocaleDateString('pt-BR')}</Text>
                 <Text style={styles.installmentAmount}>{currencyFormat.format(item.amount)}</Text>
               </View>
               <View style={styles.installmentActions}>
@@ -97,7 +99,7 @@ export function LoanDetailScreen({ route, navigation }: Props) {
                 </View>
                 {!item.paid ? (
                   <Pressable style={styles.payButton} onPress={() => markPaid(item.id)}>
-                    <Text style={styles.payButtonText}>Mark as paid</Text>
+                    <Text style={styles.payButtonText}>Marcar como paga</Text>
                   </Pressable>
                 ) : null}
               </View>
@@ -105,14 +107,14 @@ export function LoanDetailScreen({ route, navigation }: Props) {
           );
         }}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        ListEmptyComponent={<Text style={styles.empty}>No installments.</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>Nenhuma parcela.</Text>}
       />
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  list: { padding: spacing.lg, paddingBottom: spacing.xxl },
+  list: { padding: spacing.lg },
   headerAction: { color: colors.primary, fontWeight: '700', fontSize: 15 },
   summary: { marginBottom: spacing.lg },
   summaryRow: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4 },
