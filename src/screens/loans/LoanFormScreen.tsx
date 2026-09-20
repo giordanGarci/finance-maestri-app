@@ -24,6 +24,12 @@ function formatDate(date: Date): string {
   return date.toLocaleDateString('pt-BR');
 }
 
+function addOneMonth(date: Date): Date {
+  const result = new Date(date);
+  result.setMonth(result.getMonth() + 1);
+  return result;
+}
+
 /** Accepts "dd/mm/yyyy"; returns null if the text doesn't form a valid date. */
 function parseDate(text: string): Date | null {
   const parts = text.split('/');
@@ -44,7 +50,7 @@ export function LoanFormScreen({ route, navigation }: Props) {
   );
   const [quantityText, setQuantityText] = useState('1');
   const [intervalDaysText, setIntervalDaysText] = useState('30');
-  const [dateText, setDateText] = useState(() => formatDate(new Date()));
+  const [dateText, setDateText] = useState(() => formatDate(addOneMonth(new Date())));
   const [manualEdit, setManualEdit] = useState(false);
   const [manualInstallments, setManualInstallments] = useState<SuggestedInstallment[] | null>(null);
   const [saving, setSaving] = useState(false);
@@ -92,6 +98,21 @@ export function LoanFormScreen({ route, navigation }: Props) {
     setManualInstallments(active ? suggestedInstallments.map((installment) => ({ ...installment })) : null);
   }
 
+  /**
+   * Changing Principal/Juros/Quantidade/Intervalo/Date invalidates any manually
+   * customized installment amounts (they were split for a different total/schedule).
+   * Falls back to the auto-suggested split, which recalculates from the new values.
+   */
+  function updateBaseField(setter: (text: string) => void) {
+    return (text: string) => {
+      setter(text);
+      if (manualEdit) {
+        setManualEdit(false);
+        setManualInstallments(null);
+      }
+    };
+  }
+
   function editInstallmentAmount(number: number, text: string) {
     const amount = toNumber(text);
     setManualInstallments((current) => {
@@ -134,35 +155,35 @@ export function LoanFormScreen({ route, navigation }: Props) {
         <TextField
           label="Principal (R$) *"
           value={principalText}
-          onChangeText={setPrincipalText}
+          onChangeText={updateBaseField(setPrincipalText)}
           keyboardType="decimal-pad"
           placeholder="500,00"
         />
         <TextField
           label="Juros (%) *"
           value={interestRateText}
-          onChangeText={setInterestRateText}
+          onChangeText={updateBaseField(setInterestRateText)}
           keyboardType="decimal-pad"
           placeholder="10"
         />
         <TextField
           label="Quantidade de parcelas *"
           value={quantityText}
-          onChangeText={setQuantityText}
+          onChangeText={updateBaseField(setQuantityText)}
           keyboardType="number-pad"
           placeholder="1"
         />
         <TextField
           label="Intervalo entre parcelas (dias)"
           value={intervalDaysText}
-          onChangeText={setIntervalDaysText}
+          onChangeText={updateBaseField(setIntervalDaysText)}
           keyboardType="number-pad"
           placeholder="30"
         />
         <TextField
           label="Primeira parcela vence em (dd/mm/aaaa)"
           value={dateText}
-          onChangeText={setDateText}
+          onChangeText={updateBaseField(setDateText)}
           placeholder="dd/mm/aaaa"
         />
       </Card>

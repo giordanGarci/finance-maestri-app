@@ -67,6 +67,7 @@ export async function createLoan(data: NewLoanData): Promise<string> {
   for (const installment of data.installments) {
     const installmentDocRef = doc(collection(db, 'loans', loanDocRef.id, 'installments'));
     batch.set(installmentDocRef, {
+      loanId: loanDocRef.id,
       number: installment.number,
       amount: installment.amount,
       dueDate: Timestamp.fromDate(installment.dueDate),
@@ -107,12 +108,14 @@ export async function updateLoan(loanId: string, data: NewLoanData): Promise<voi
     const existing = existingInstallmentsByNumber.get(installment.number);
     if (existing) {
       batch.update(existing.ref, {
+        loanId,
         amount: installment.amount,
         dueDate: Timestamp.fromDate(installment.dueDate),
       });
     } else {
       const installmentDocRef = doc(collection(db, 'loans', loanId, 'installments'));
       batch.set(installmentDocRef, {
+        loanId,
         number: installment.number,
         amount: installment.amount,
         dueDate: Timestamp.fromDate(installment.dueDate),
@@ -137,7 +140,9 @@ export function listInstallments(
   onChange: (installments: Installment[]) => void
 ): Unsubscribe {
   return onSnapshot(installmentsRef(loanId), (snap) => {
-    const installments = snap.docs.map((d) => d.data());
+    // loanId is set on the document by createLoan/updateLoan, but installments written
+    // before that field existed still need it: the parent path is authoritative here.
+    const installments = snap.docs.map((d) => ({ ...d.data(), loanId }));
     installments.sort((a, b) => a.number - b.number);
     onChange(installments);
   });
