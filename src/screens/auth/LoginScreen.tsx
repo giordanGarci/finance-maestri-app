@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
 import { createAccount, signInWithEmailPassword } from '../../data/auth';
 import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
 import { TextField } from '../../ui/TextField';
 import { colors, spacing, typography } from '../../ui/theme';
+import { useKeyboardHeight } from '../../ui/useKeyboardHeight';
 
 export function LoginScreen() {
   const [mode, setMode] = useState<'sign-in' | 'create-account'>('sign-in');
@@ -12,6 +13,7 @@ export function LoginScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const keyboardHeight = useKeyboardHeight();
 
   async function confirm() {
     setError(null);
@@ -30,7 +32,10 @@ export function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      contentContainerStyle={[styles.container, { paddingBottom: spacing.xl + keyboardHeight }]}
+      keyboardShouldPersistTaps="handled"
+    >
       <Text style={styles.brand}>💰</Text>
       <Text style={styles.title}>Empréstimos</Text>
       <Text style={styles.subtitle}>Organize clientes, empréstimos e parcelas em um só lugar</Text>
@@ -68,16 +73,17 @@ export function LoginScreen() {
           style={styles.secondaryButton}
         />
       </Card>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'stretch',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
     backgroundColor: colors.background,
   },
   brand: { fontSize: 44, textAlign: 'center', marginBottom: spacing.sm },
