@@ -154,3 +154,23 @@ export async function markInstallmentPaid(loanId: string, installmentId: string)
     paidAt: Timestamp.fromDate(new Date()),
   });
 }
+
+/**
+ * Deletes a Loan and all of its Installments, paid or not. Available capital is
+ * derived from the Loans/Installments that still exist (see domain/capital.ts:
+ * Principal is subtracted, paid Installments added back), so removing them here
+ * is what returns the borrowed Principal, net of anything already paid back —
+ * no separate ledger entry needed.
+ */
+export async function deleteLoan(loanId: string): Promise<void> {
+  const batch = writeBatch(db);
+
+  const installmentsSnap = await getDocs(collection(db, 'loans', loanId, 'installments'));
+  for (const installmentDoc of installmentsSnap.docs) {
+    batch.delete(installmentDoc.ref);
+  }
+
+  batch.delete(doc(db, 'loans', loanId));
+
+  await batch.commit();
+}

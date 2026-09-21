@@ -4,7 +4,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import type { Installment } from '../../domain/types';
 import { installmentStatus } from '../../domain/installment';
-import { listInstallments, markInstallmentPaid, watchLoan } from '../../data/loansRepository';
+import { deleteLoan, listInstallments, markInstallmentPaid, watchLoan } from '../../data/loansRepository';
+import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
 import { ScreenContainer } from '../../ui/ScreenContainer';
 import { useBottomListPadding } from '../../ui/useBottomListPadding';
@@ -18,6 +19,7 @@ export function LoanDetailScreen({ route, navigation }: Props) {
   const { loan: initialLoan } = route.params;
   const [loan, setLoan] = useState(initialLoan);
   const [installments, setInstallments] = useState<Installment[]>([]);
+  const [deleting, setDeleting] = useState(false);
   const bottomPadding = useBottomListPadding();
 
   useEffect(
@@ -47,6 +49,28 @@ export function LoanDetailScreen({ route, navigation }: Props) {
       await markInstallmentPaid(loan.id, installmentId);
     } catch (error) {
       Alert.alert('Erro ao marcar parcela', String(error));
+    }
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      'Excluir empréstimo',
+      'O valor emprestado voltará para o capital disponível, mesmo que parcelas já tenham sido pagas. Essa ação não pode ser desfeita.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Excluir', style: 'destructive', onPress: runDelete },
+      ]
+    );
+  }
+
+  async function runDelete() {
+    setDeleting(true);
+    try {
+      await deleteLoan(loan.id);
+      navigation.goBack();
+    } catch (error) {
+      setDeleting(false);
+      Alert.alert('Erro ao excluir empréstimo', String(error));
     }
   }
 
@@ -108,6 +132,16 @@ export function LoanDetailScreen({ route, navigation }: Props) {
         }}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={<Text style={styles.empty}>Nenhuma parcela.</Text>}
+        ListFooterComponent={
+          <AppButton
+            title={deleting ? 'Excluindo...' : 'Excluir empréstimo'}
+            onPress={confirmDelete}
+            disabled={deleting}
+            loading={deleting}
+            variant="danger"
+            style={styles.deleteButton}
+          />
+        }
       />
     </ScreenContainer>
   );
@@ -153,4 +187,5 @@ const styles = StyleSheet.create({
   },
   payButtonText: { color: colors.primary, fontWeight: '700', fontSize: 12 },
   empty: { textAlign: 'center', marginTop: spacing.lg, color: colors.textMuted },
+  deleteButton: { marginTop: spacing.lg },
 });
