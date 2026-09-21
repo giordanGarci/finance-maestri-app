@@ -4,6 +4,7 @@ import type { Contribution, Withdrawal } from '../../domain/types';
 import { createContribution, listContributions } from '../../data/contributionsRepository';
 import { createWithdrawal, listWithdrawals } from '../../data/withdrawalsRepository';
 import { AvailableCapitalSummary } from '../components/AvailableCapitalSummary';
+import { useClientLoansData } from '../hooks/useClientLoansData';
 import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
 import { ScreenContainer } from '../../ui/ScreenContainer';
@@ -13,7 +14,16 @@ import { colors, radius, spacing, typography } from '../../ui/theme';
 
 const currencyFormat = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
-type MovementKind = 'contribution' | 'withdrawal';
+/** The register form only ever creates these two kinds; Loan/Payment are read-only history entries. */
+type RegisterKind = 'contribution' | 'withdrawal';
+type MovementKind = RegisterKind | 'loan' | 'payment';
+
+const MOVEMENT_LABEL: Record<MovementKind, string> = {
+  contribution: 'Aporte',
+  withdrawal: 'Retirada',
+  loan: 'Empréstimo concedido',
+  payment: 'Pagamento recebido',
+};
 
 interface Movement {
   id: string;
@@ -31,8 +41,9 @@ function toNumber(text: string): number {
 export function ContributionsScreen() {
   const [contributions, setContributions] = useState<Contribution[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const loansData = useClientLoansData();
   const bottomPadding = useBottomListPadding();
-  const [kind, setKind] = useState<MovementKind>('contribution');
+  const [kind, setKind] = useState<RegisterKind>('contribution');
   const [amountText, setAmountText] = useState('');
   const [note, setNote] = useState('');
   const [saving, setSaving] = useState(false);
@@ -42,12 +53,36 @@ export function ContributionsScreen() {
   useEffect(() => listWithdrawals(setWithdrawals), []);
 
   const movements = useMemo<Movement[]>(() => {
+    const loans = loansData?.loans ?? [];
+    const installments = loansData?.installments ?? [];
+    const clientById = loansData?.clientById ?? {};
+    const loanById = new Map(loans.map((loan) => [loan.id, loan]));
+
     const all: Movement[] = [
       ...contributions.map((c) => ({ id: c.id, kind: 'contribution' as const, amount: c.amount, date: c.date, note: c.note })),
       ...withdrawals.map((w) => ({ id: w.id, kind: 'withdrawal' as const, amount: w.amount, date: w.date, note: w.note })),
+      ...loans.map((loan) => ({
+        id: `loan-${loan.id}`,
+        kind: 'loan' as const,
+        amount: loan.principal,
+        date: loan.createdAt,
+        note: clientById[loan.clientId]?.name,
+      })),
+      ...installments
+        .filter((installment) => installment.paid)
+        .map((installment) => {
+          const clientName = clientById[loanById.get(installment.loanId)?.clientId ?? '']?.name;
+          return {
+            id: `payment-${installment.id}`,
+            kind: 'payment' as const,
+            amount: installment.amount,
+            date: installment.paidAt ?? installment.dueDate,
+            note: clientName ? `${clientName} · parcela ${installment.number}` : `Parcela ${installment.number}`,
+          };
+        }),
     ];
     return all.sort((a, b) => b.date.getTime() - a.date.getTime());
-  }, [contributions, withdrawals]);
+  }, [contributions, withdrawals, loansData]);
 
   async function registerMovement() {
     const amount = toNumber(amountText);
@@ -131,19 +166,22 @@ export function ContributionsScreen() {
             <Text style={styles.sectionTitle}>Histórico</Text>
           </>
         }
-        renderItem={({ item }) => (
-          <Card>
-            <View style={styles.topRow}>
-              <Text style={[styles.rowAmount, item.kind === 'withdrawal' && styles.rowAmountNegative]}>
-                {item.kind === 'withdrawal' ? '- ' : '+ '}
-                {currencyFormat.format(item.amount)}
-              </Text>
-              <Text style={styles.rowDate}>{item.date.toLocaleDateString('pt-BR')}</Text>
-            </View>
-            <Text style={styles.rowKind}>{item.kind === 'contribution' ? 'Aporte' : 'Retirada'}</Text>
-            {item.note ? <Text style={styles.rowNote}>{item.note}</Text> : null}
-          </Card>
-        )}
+        renderItem={({ item }) => {
+          const negative = item.kind === 'withdrawal' || item.kind === 'loan';
+          return (
+            <Card>
+              <View style={styles.topRow}>
+                <Text style={[styles.rowAmount, negative && styles.rowAmountNegative]}>
+                  {negative ? '- ' : '+ '}
+                  {currencyFormat.format(item.amount)}
+                </Text>
+                <Text style={styles.rowDate}>{item.date.toLocaleDateString('pt-BR')}</Text>
+              </View>
+              <Text style={styles.rowKind}>{MOVEMENT_LABEL[item.kind]}</Text>
+              {item.note ? <Text style={styles.rowNote}>{item.note}</Text> : null}
+            </Card>
+          );
+        }}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={<Text style={styles.empty}>Nenhuma movimentação registrada ainda.</Text>}
       />
