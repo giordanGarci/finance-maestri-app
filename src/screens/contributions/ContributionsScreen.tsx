@@ -31,6 +31,12 @@ interface Movement {
   amount: number;
   date: Date;
   note?: string;
+  /** Available capital right after this movement, in chronological order (see domain/capital.ts). */
+  balanceAfter: number;
+}
+
+function isOutflow(kind: MovementKind): boolean {
+  return kind === 'withdrawal' || kind === 'loan';
 }
 
 function toNumber(text: string): number {
@@ -58,7 +64,7 @@ export function ContributionsScreen() {
     const clientById = loansData?.clientById ?? {};
     const loanById = new Map(loans.map((loan) => [loan.id, loan]));
 
-    const all: Movement[] = [
+    const unordered: Array<Omit<Movement, 'balanceAfter'>> = [
       ...contributions.map((c) => ({ id: c.id, kind: 'contribution' as const, amount: c.amount, date: c.date, note: c.note })),
       ...withdrawals.map((w) => ({ id: w.id, kind: 'withdrawal' as const, amount: w.amount, date: w.date, note: w.note })),
       ...loans.map((loan) => ({
@@ -81,7 +87,16 @@ export function ContributionsScreen() {
           };
         }),
     ];
-    return all.sort((a, b) => b.date.getTime() - a.date.getTime());
+
+    // Running balance only makes sense oldest-first; the result is re-sorted for display below.
+    const ascending = [...unordered].sort((a, b) => a.date.getTime() - b.date.getTime());
+    let balance = 0;
+    const withBalance: Movement[] = ascending.map((movement) => {
+      balance += isOutflow(movement.kind) ? -movement.amount : movement.amount;
+      return { ...movement, balanceAfter: balance };
+    });
+
+    return withBalance.sort((a, b) => b.date.getTime() - a.date.getTime());
   }, [contributions, withdrawals, loansData]);
 
   async function registerMovement() {
@@ -167,7 +182,7 @@ export function ContributionsScreen() {
           </>
         }
         renderItem={({ item }) => {
-          const negative = item.kind === 'withdrawal' || item.kind === 'loan';
+          const negative = isOutflow(item.kind);
           return (
             <Card>
               <View style={styles.topRow}>
@@ -179,6 +194,7 @@ export function ContributionsScreen() {
               </View>
               <Text style={styles.rowKind}>{MOVEMENT_LABEL[item.kind]}</Text>
               {item.note ? <Text style={styles.rowNote}>{item.note}</Text> : null}
+              <Text style={styles.rowBalance}>Saldo após: {currencyFormat.format(item.balanceAfter)}</Text>
             </Card>
           );
         }}
@@ -219,5 +235,6 @@ const styles = StyleSheet.create({
   rowDate: { fontSize: 13, color: colors.textMuted },
   rowKind: { fontSize: 12, color: colors.textMuted, marginTop: 2, fontWeight: '600' },
   rowNote: { fontSize: 13, color: colors.textMuted, marginTop: spacing.xs },
+  rowBalance: { fontSize: 12, color: colors.textMuted, marginTop: spacing.xs, fontWeight: '600' },
   empty: { textAlign: 'center', marginTop: spacing.lg, color: colors.textMuted },
 });
