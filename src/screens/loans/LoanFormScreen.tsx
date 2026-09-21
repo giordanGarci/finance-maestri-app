@@ -48,6 +48,7 @@ export function LoanFormScreen({ route, navigation }: Props) {
   const [interestRateText, setInterestRateText] = useState(
     loan ? String(Math.round(loan.interestRate * 100 * 100) / 100) : ''
   );
+  const [totalReceivableText, setTotalReceivableText] = useState('');
   const [quantityText, setQuantityText] = useState('1');
   const [intervalDaysText, setIntervalDaysText] = useState('30');
   const [dateText, setDateText] = useState(() => formatDate(addOneMonth(new Date())));
@@ -82,16 +83,26 @@ export function LoanFormScreen({ route, navigation }: Props) {
   const intervalDays = Math.round(toNumber(intervalDaysText)) || 0;
   const firstDueDate = parseDate(dateText) ?? new Date();
 
-  const totalAmount = useMemo(() => calculateTotalAmount(principal, interestRate), [principal, interestRate]);
+  const computedTotalAmount = useMemo(
+    () => calculateTotalAmount(principal, interestRate),
+    [principal, interestRate]
+  );
 
   const suggestedInstallments = useMemo(
-    () => suggestInstallments(totalAmount, quantity, firstDueDate, intervalDays),
+    () => suggestInstallments(computedTotalAmount, quantity, firstDueDate, intervalDays),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [totalAmount, quantity, dateText, intervalDays]
+    [computedTotalAmount, quantity, dateText, intervalDays]
   );
 
   const installments = manualEdit && manualInstallments ? manualInstallments : suggestedInstallments;
   const installmentsSum = installments.reduce((sum, installment) => sum + installment.amount, 0);
+
+  /**
+   * With manual edits, the installments' sum is the source of truth for Valor total:
+   * Juros/Total a receber back-calculate from it (see editInstallmentAmount) instead of
+   * the other way around, so the two can never disagree.
+   */
+  const totalAmount = manualEdit && manualInstallments ? installmentsSum : computedTotalAmount;
 
   function toggleManualEdit(active: boolean) {
     setManualEdit(active);
@@ -113,12 +124,42 @@ export function LoanFormScreen({ route, navigation }: Props) {
     };
   }
 
+  /**
+   * Alternative to typing Juros directly: informing the total amount you'll
+   * receive back-calculates the interest rate from it (Principal + Juros =
+   * that total), so you don't need to know the percentage up front.
+   */
+  function updateTotalReceivable(text: string) {
+    setTotalReceivableText(text);
+    const total = toNumber(text);
+    if (principal > 0 && total > 0) {
+      const rate = ((total - principal) / principal) * 100;
+      setInterestRateText(String(Math.round(rate * 100) / 100));
+    }
+    if (manualEdit) {
+      setManualEdit(false);
+      setManualInstallments(null);
+    }
+  }
+
+  /**
+   * Editing a parcela's amount wins over Juros/Total a receber: the new sum is
+   * back-calculated into those fields instead of being flagged as a mismatch.
+   */
   function editInstallmentAmount(number: number, text: string) {
     const amount = toNumber(text);
-    setManualInstallments((current) => {
-      const base = current ?? suggestedInstallments.map((installment) => ({ ...installment }));
-      return base.map((installment) => (installment.number === number ? { ...installment, amount } : installment));
-    });
+    const base = manualInstallments ?? suggestedInstallments.map((installment) => ({ ...installment }));
+    const updated = base.map((installment) =>
+      installment.number === number ? { ...installment, amount } : installment
+    );
+    setManualInstallments(updated);
+
+    const newTotal = updated.reduce((sum, installment) => sum + installment.amount, 0);
+    if (principal > 0) {
+      const rate = ((newTotal - principal) / principal) * 100;
+      setInterestRateText(String(Math.round(rate * 100) / 100));
+    }
+    setTotalReceivableText(newTotal.toFixed(2));
   }
 
   async function save() {
@@ -160,11 +201,18 @@ export function LoanFormScreen({ route, navigation }: Props) {
           placeholder="500,00"
         />
         <TextField
-          label="Juros (%) *"
+          label="Juros (%)"
           value={interestRateText}
           onChangeText={updateBaseField(setInterestRateText)}
           keyboardType="decimal-pad"
           placeholder="10"
+        />
+        <TextField
+          label="Ou valor total a receber (R$)"
+          value={totalReceivableText}
+          onChangeText={updateTotalReceivable}
+          keyboardType="decimal-pad"
+          placeholder="560,00"
         />
         <TextField
           label="Quantidade de parcelas *"
@@ -230,13 +278,6 @@ export function LoanFormScreen({ route, navigation }: Props) {
             )}
           </View>
         ))}
-
-        {manualEdit && Math.abs(installmentsSum - totalAmount) > 0.01 ? (
-          <Text style={styles.warning}>
-            Soma das parcelas ({currencyFormat.format(installmentsSum)}) diferente do valor total (
-            {currencyFormat.format(totalAmount)}).
-          </Text>
-        ) : null}
       </Card>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -302,7 +343,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     color: colors.text,
   },
-  warning: { color: colors.danger, marginTop: spacing.sm, fontSize: 13, fontWeight: '600' },
   error: { color: colors.danger, marginBottom: spacing.sm, fontSize: 14, fontWeight: '600' },
   saveButton: { marginTop: spacing.xs },
 });
