@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
 import type { Loan } from '../../domain/types';
+import { deleteClient } from '../../data/clientsRepository';
 import { listLoansByClient } from '../../data/loansRepository';
 import { AppButton } from '../../ui/AppButton';
 import { Card } from '../../ui/Card';
@@ -17,9 +18,32 @@ const currencyFormat = new Intl.NumberFormat('pt-BR', { style: 'currency', curre
 export function ClientDetailScreen({ route, navigation }: Props) {
   const { client } = route.params;
   const [loans, setLoans] = useState<Loan[]>([]);
+  const [deleting, setDeleting] = useState(false);
   const bottomPadding = useBottomListPadding();
 
   useEffect(() => listLoansByClient(client.id, setLoans), [client.id]);
+
+  function confirmDelete() {
+    const loansWarning =
+      loans.length > 0
+        ? `${loans.length === 1 ? 'O empréstimo' : `Os ${loans.length} empréstimos`} deste cliente também ${loans.length === 1 ? 'será excluído' : 'serão excluídos'} e o valor emprestado voltará para o capital disponível. `
+        : '';
+    Alert.alert('Excluir cliente', `${loansWarning}Essa ação não pode ser desfeita.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Excluir', style: 'destructive', onPress: runDelete },
+    ]);
+  }
+
+  async function runDelete() {
+    setDeleting(true);
+    try {
+      await deleteClient(client.id);
+      navigation.goBack();
+    } catch (error) {
+      setDeleting(false);
+      Alert.alert('Erro ao excluir cliente', String(error));
+    }
+  }
 
   return (
     <ScreenContainer>
@@ -62,6 +86,16 @@ export function ClientDetailScreen({ route, navigation }: Props) {
         )}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
         ListEmptyComponent={<Text style={styles.empty}>Nenhum empréstimo ainda.</Text>}
+        ListFooterComponent={
+          <AppButton
+            title={deleting ? 'Excluindo...' : 'Excluir cliente'}
+            onPress={confirmDelete}
+            disabled={deleting}
+            loading={deleting}
+            variant="danger"
+            style={styles.deleteButton}
+          />
+        }
         contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
       />
     </ScreenContainer>
@@ -82,4 +116,5 @@ const styles = StyleSheet.create({
   rowSubtitle: { fontSize: 13, color: colors.textMuted, marginTop: 3 },
   arrow: { fontSize: 22, color: colors.textFaint, fontWeight: '300' },
   empty: { textAlign: 'center', marginTop: spacing.lg, color: colors.textMuted },
+  deleteButton: { marginTop: spacing.xl },
 });
