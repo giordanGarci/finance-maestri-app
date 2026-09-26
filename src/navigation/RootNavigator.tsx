@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type { RootStackParamList } from './types';
 import { ClientsListScreen } from '../screens/clients/ClientsListScreen';
+import { ClientsSearchScreen } from '../screens/clients/ClientsSearchScreen';
 import { ClientFormScreen } from '../screens/clients/ClientFormScreen';
 import { ClientDetailScreen } from '../screens/clients/ClientDetailScreen';
 import { LoanFormScreen } from '../screens/loans/LoanFormScreen';
@@ -25,6 +26,7 @@ export function RootNavigator() {
       }}
     >
       <Stack.Screen name="ClientsList" component={ClientsListScreen} options={{ title: 'Clientes' }} />
+      <Stack.Screen name="ClientsSearch" component={ClientsSearchScreen} options={{ title: 'Todos os clientes' }} />
       <Stack.Screen name="ClientForm" component={ClientFormScreen} options={{ title: 'Cliente' }} />
       <Stack.Screen name="ClientDetail" component={ClientDetailScreen} options={{ title: 'Detalhe do cliente' }} />
       <Stack.Screen

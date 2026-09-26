@@ -2,48 +2,22 @@ import { useEffect, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../../navigation/types';
-import type { Client, Loan } from '../../domain/types';
+import type { Client } from '../../domain/types';
 import { listClients } from '../../data/clientsRepository';
-import { listLoansByClient } from '../../data/loansRepository';
 import { signOutUser } from '../../data/auth';
 import { AvailableCapitalSummary } from '../components/AvailableCapitalSummary';
-import { AppButton } from '../../ui/AppButton';
-import { Card } from '../../ui/Card';
+import { ActionCard } from '../../ui/ActionCard';
+import { CalendarIcon } from '../../ui/CalendarIcon';
+import { CoinsIcon } from '../../ui/CoinsIcon';
+import { IconButton } from '../../ui/IconButton';
+import { PlusIcon } from '../../ui/PlusIcon';
 import { ScreenContainer } from '../../ui/ScreenContainer';
+import { SearchIcon } from '../../ui/SearchIcon';
 import { useBottomListPadding } from '../../ui/useBottomListPadding';
-import { colors, radius, spacing, typography } from '../../ui/theme';
+import { colors, spacing, typography } from '../../ui/theme';
+import { ClientRow } from './ClientRow';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ClientsList'>;
-
-function initials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  const first = parts[0]?.[0] ?? '';
-  const last = parts.length > 1 ? parts[parts.length - 1][0] : '';
-  return (first + last).toUpperCase();
-}
-
-function ClientRow({ client, onPress }: { client: Client; onPress: () => void }) {
-  const [loans, setLoans] = useState<Loan[]>([]);
-
-  useEffect(() => listLoansByClient(client.id, setLoans), [client.id]);
-
-  return (
-    <Pressable onPress={onPress} style={({ pressed }) => [pressed && styles.rowPressed]}>
-      <Card style={styles.row}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{initials(client.name)}</Text>
-        </View>
-        <View style={styles.rowInfo}>
-          <Text style={styles.name}>{client.name}</Text>
-          <Text style={styles.indicator}>
-            {loans.length} {loans.length === 1 ? 'empréstimo' : 'empréstimos'}
-          </Text>
-        </View>
-        <Text style={styles.arrow}>›</Text>
-      </Card>
-    </Pressable>
-  );
-}
 
 export function ClientsListScreen({ navigation }: Props) {
   const [clients, setClients] = useState<Client[]>([]);
@@ -59,7 +33,7 @@ export function ClientsListScreen({ navigation }: Props) {
             <Text style={styles.headerAction}>Preferências</Text>
           </Pressable>
           <Pressable onPress={() => signOutUser()} hitSlop={8}>
-            <Text style={styles.headerAction}>Sair</Text>
+            <Text style={[styles.headerAction, styles.headerActionMuted]}>Sair</Text>
           </Pressable>
         </View>
       ),
@@ -74,25 +48,46 @@ export function ClientsListScreen({ navigation }: Props) {
         ListHeaderComponent={
           <>
             <AvailableCapitalSummary />
-            <Pressable style={styles.contributionsLink} onPress={() => navigation.navigate('Contributions')}>
-              <Text style={styles.contributionsLinkText}>Ver aportes e retiradas ›</Text>
-            </Pressable>
-            <Pressable style={styles.contributionsLink} onPress={() => navigation.navigate('UpcomingPayments')}>
-              <Text style={styles.contributionsLinkText}>Ver próximos pagamentos ›</Text>
-            </Pressable>
-            <AppButton
-              title="+ Novo cliente"
-              onPress={() => navigation.navigate('ClientForm')}
-              style={styles.newButton}
-            />
-            <Text style={styles.sectionTitle}>Clientes</Text>
+            <View style={styles.actionsRow}>
+              <ActionCard
+                icon={<CoinsIcon />}
+                label="Aportes e retiradas"
+                onPress={() => navigation.navigate('Contributions')}
+              />
+              <ActionCard
+                icon={<CalendarIcon />}
+                label="Próximos pagamentos"
+                onPress={() => navigation.navigate('UpcomingPayments')}
+              />
+            </View>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>
+                Clientes{clients.length > 0 ? ` · ${clients.length}` : ''}
+              </Text>
+              <View style={styles.sectionActions}>
+                <IconButton
+                  accessibilityLabel="Pesquisar clientes"
+                  onPress={() => navigation.navigate('ClientsSearch')}
+                >
+                  <SearchIcon />
+                </IconButton>
+                <IconButton accessibilityLabel="Novo cliente" onPress={() => navigation.navigate('ClientForm')}>
+                  <PlusIcon />
+                </IconButton>
+              </View>
+            </View>
           </>
         }
         renderItem={({ item }) => (
           <ClientRow client={item} onPress={() => navigation.navigate('ClientDetail', { client: item })} />
         )}
         ItemSeparatorComponent={() => <View style={{ height: spacing.sm }} />}
-        ListEmptyComponent={<Text style={styles.empty}>Nenhum cliente cadastrado ainda.</Text>}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyTitle}>Nenhum cliente ainda</Text>
+            <Text style={styles.emptyText}>Cadastre o primeiro cliente para começar a registrar empréstimos.</Text>
+          </View>
+        }
         contentContainerStyle={[styles.list, { paddingBottom: bottomPadding }]}
       />
     </ScreenContainer>
@@ -101,26 +96,20 @@ export function ClientsListScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   list: { padding: spacing.lg },
-  newButton: { marginTop: spacing.lg },
   headerActions: { flexDirection: 'row', gap: spacing.lg },
   headerAction: { color: colors.primary, fontWeight: '600' },
-  contributionsLink: { marginTop: spacing.md, marginBottom: spacing.md },
-  contributionsLinkText: { color: colors.primary, fontWeight: '700' },
-  sectionTitle: { ...typography.subtitle, marginBottom: spacing.sm },
-  rowPressed: { opacity: 0.8 },
-  row: { flexDirection: 'row', alignItems: 'center' },
-  rowInfo: { flex: 1, marginLeft: spacing.md },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: radius.pill,
-    backgroundColor: colors.primarySoft,
+  headerActionMuted: { color: colors.textMuted },
+  actionsRow: { flexDirection: 'row', gap: spacing.md, marginTop: spacing.md },
+  sectionHeader: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
+    marginTop: spacing.xl,
+    marginBottom: spacing.sm,
   },
-  avatarText: { color: colors.primaryDark, fontWeight: '800', fontSize: 15 },
-  name: { fontSize: 16, fontWeight: '700', color: colors.text },
-  indicator: { fontSize: 13, color: colors.textMuted, marginTop: 2 },
-  arrow: { fontSize: 22, color: colors.textFaint, fontWeight: '300' },
-  empty: { textAlign: 'center', marginTop: spacing.xl, color: colors.textMuted },
+  sectionTitle: { ...typography.subtitle },
+  sectionActions: { flexDirection: 'row', gap: spacing.sm },
+  empty: { alignItems: 'center', marginTop: spacing.xxl, paddingHorizontal: spacing.xl },
+  emptyTitle: { fontSize: 16, fontWeight: '700', color: colors.text },
+  emptyText: { fontSize: 14, color: colors.textMuted, textAlign: 'center', marginTop: spacing.xs, lineHeight: 20 },
 });
